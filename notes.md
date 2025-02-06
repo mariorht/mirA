@@ -2,6 +2,9 @@
 
 https://canonical-mir.readthedocs-hosted.com/stable/tutorial/getting-started-with-mir/
 https://canonical-mir.readthedocs-hosted.com/stable/tutorial/write-your-first-wayland-compositor/
+https://canonical-mir.readthedocs-hosted.com/stable/how-to/how-to-handle-keyboard-input/
+https://canonical-mir.readthedocs-hosted.com/stable/api/library_root/#
+https://canonical-mir.readthedocs-hosted.com/stable/reference/introducing_the_miral_api/
 
 ### My system:
 ```
