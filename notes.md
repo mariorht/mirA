@@ -5,6 +5,8 @@ https://canonical-mir.readthedocs-hosted.com/stable/tutorial/write-your-first-wa
 https://canonical-mir.readthedocs-hosted.com/stable/how-to/how-to-handle-keyboard-input/
 https://canonical-mir.readthedocs-hosted.com/stable/api/library_root/#
 https://canonical-mir.readthedocs-hosted.com/stable/reference/introducing_the_miral_api/
+https://canonical-mir.readthedocs-hosted.com/v2.18.3/api/program_listing_file_examples_example-server-lib_tiling_window_manager.h/
+https://sources.debian.org/src/mir/1.8.0%2Bdfsg1-18/examples/
 
 ### My system:
 ```
@@ -40,3 +42,6 @@ sudo apt install libmiral-dev mir-graphics-drivers-desktop
 sudo apt install build-essential cmake pkg-config
 sudo apt install xfce4-terminal
 sudo apt install mir-demos mir-graphics-drivers-desktop
+
+
+### Va a ser un tiling window manager

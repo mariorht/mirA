@@ -53,7 +53,3 @@ After building the project, you can run the compositor with the following comman
 ```
 ./mir-compositor
 ```
-
-## Contributing
-
-Feel free to submit issues or pull requests if you have suggestions or improvements for the project.
