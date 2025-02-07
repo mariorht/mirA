@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <map>
+#include <set>
 
 using namespace mir::geometry;
 
@@ -73,6 +74,8 @@ private:
     int active_workspace = 1;
     std::map<int, std::shared_ptr<miral::Workspace>> workspaces;
     std::map<miral::Window, int> window_workspace_map;   
+    std::set<miral::Window> persistent_windows;
+    miral::Window panel_window;
 
 };
 

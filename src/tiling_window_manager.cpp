@@ -40,17 +40,35 @@ auto TilingWindowManagerPolicy::confirm_inherited_move(
 void TilingWindowManagerPolicy::handle_window_ready(miral::WindowInfo& window_info)
 {
     auto window = window_info.window();
-    window_workspace_map[window] = active_workspace;
-    tools.add_tree_to_workspace(window, workspaces[active_workspace]);
+    std::string window_name = window_info.name();
+
+    std::cerr << "[DEBUG] Ventana lista: " << window_name << "\n";
+    if (window_name == "Workspace Panel")  // Aseguramos que "panel" siempre esté visible
+    {
+        persistent_windows.insert(window);
+
+        miral::WindowSpecification spec;
+        spec.top_left() = {0, 0};  // Arriba, esquina izquierda
+        spec.size() = {tools.active_output().size.width, 30};  // Todo el ancho, altura de 30px
+        spec.state() = mir_window_state_restored;
+        tools.modify_window(window, spec);
+
+        panel_window = window;  // Guardamos la referencia
+    }
+    else
+    {
+        window_workspace_map[window] = active_workspace;
+        tools.add_tree_to_workspace(window, workspaces[active_workspace]);
+    }
 
     update_tiles({tools.active_output()});
 
-    // Asegurar que la ventana recibe el foco
     if (window_info.can_be_active())
     {
-        tools.select_active_window(window_info.window());
+        tools.select_active_window(window);
     }
 }
+
 
 void TilingWindowManagerPolicy::handle_modify_window(miral::WindowInfo& window_info, miral::WindowSpecification const& modifications)
 {
@@ -227,11 +245,17 @@ void TilingWindowManagerPolicy::update_tiles(std::vector<Rectangle> const& outpu
     std::vector<miral::Window> tiled_windows;
     miral::Window fullscreen_window;
 
-    // � Buscar si hay una ventana en pantalla completa
+    int panel_height = 30;  // Altura fija del panel
+    int screen_width = tools.active_output().size.width.as_int();
+    int screen_height = tools.active_output().size.height.as_int() - panel_height;  // Restamos la altura del panel
+
     tools.for_each_application([&](miral::ApplicationInfo& app_info)
     {
         for (auto const& window : app_info.windows())
         {
+            if (persistent_windows.count(window))  // Ignorar el panel
+                continue;
+
             if (window_workspace_map[window] == active_workspace)
             {
                 auto& info = tools.info_for(window);
@@ -248,18 +272,16 @@ void TilingWindowManagerPolicy::update_tiles(std::vector<Rectangle> const& outpu
         }
     });
 
-    // � Si hay una ventana en pantalla completa, ocultamos todas las demás
     if (fullscreen_window)
     {
         std::cerr << "[DEBUG] Modo pantalla completa activado\n";
 
         miral::WindowSpecification spec;
-        spec.top_left() = {0, 0};
-        spec.size() = {tools.active_output().size.width, tools.active_output().size.height};
+        spec.top_left() = {0, panel_height};  // Inicia debajo del panel
+        spec.size() = {screen_width, screen_height};  // Ocupa toda la pantalla menos el panel
         spec.state() = mir_window_state_fullscreen;
         tools.modify_window(fullscreen_window, spec);
 
-        // � Ocultar todas las demás ventanas del workspace
         for (auto& window : tiled_windows)
         {
             miral::WindowSpecification hide_spec;
@@ -269,21 +291,17 @@ void TilingWindowManagerPolicy::update_tiles(std::vector<Rectangle> const& outpu
         return;
     }
 
-    // � Si no hay pantalla completa, aplicar tiling normal
     if (tiled_windows.empty()) return;
 
     int num_windows = tiled_windows.size();
     std::cerr << "[DEBUG] Recalculando mosaico en workspace " << active_workspace 
               << ", número de ventanas: " << num_windows << "\n";
 
-    int screen_width = tools.active_output().size.width.as_int();
-    int screen_height = tools.active_output().size.height.as_int();
-
     int columns = std::ceil(std::sqrt(num_windows));
     int rows = std::ceil(static_cast<float>(num_windows) / columns);
 
     int window_width = screen_width / columns;
-    int window_height = screen_height / rows;
+    int window_height = screen_height / rows;  // Restamos la altura del panel
 
     for (int i = 0; i < num_windows; ++i)
     {
@@ -291,14 +309,13 @@ void TilingWindowManagerPolicy::update_tiles(std::vector<Rectangle> const& outpu
         int row = i / columns;
 
         miral::WindowSpecification spec;
-        spec.top_left() = {col * window_width, row * window_height};
+        spec.top_left() = {col * window_width, panel_height + row * window_height};  // Inicia debajo del panel
         spec.size() = {window_width, window_height};
         spec.state() = mir_window_state_restored;
 
         tools.modify_window(tiled_windows[i], spec);
     }
 }
-
 
 
 void TilingWindowManagerPolicy::advise_delete_window(miral::WindowInfo const& window_info)
@@ -333,7 +350,6 @@ void TilingWindowManagerPolicy::create_workspace(int id)
 
 void TilingWindowManagerPolicy::switch_workspace(int id)
 {
-    // � Si el workspace no existe, lo creamos
     if (workspaces.find(id) == workspaces.end())
     {
         std::cerr << "[DEBUG] Creando workspace " << id << "\n";
@@ -342,14 +358,15 @@ void TilingWindowManagerPolicy::switch_workspace(int id)
 
     std::cerr << "[DEBUG] Cambiando al workspace " << id << "\n";
 
-    // � Guardamos el workspace activo
     active_workspace = id;
 
-    // � Ocultar ventanas del workspace actual
     tools.for_each_application([&](miral::ApplicationInfo& app_info)
     {
         for (auto const& window : app_info.windows())
         {
+            if (persistent_windows.count(window))  // No ocultar panel
+                continue;
+
             if (window_workspace_map[window] != active_workspace)
             {
                 miral::WindowSpecification spec;
@@ -359,12 +376,14 @@ void TilingWindowManagerPolicy::switch_workspace(int id)
         }
     });
 
-    // � Restaurar ventanas del nuevo workspace
     bool has_windows = false;
     tools.for_each_application([&](miral::ApplicationInfo& app_info)
     {
         for (auto const& window : app_info.windows())
         {
+            if (persistent_windows.count(window))  // No modificar panel
+                continue;
+
             if (window_workspace_map[window] == active_workspace)
             {
                 has_windows = true;
@@ -375,7 +394,6 @@ void TilingWindowManagerPolicy::switch_workspace(int id)
         }
     });
 
-    // � Si no hay ventanas en el workspace, aún así forzamos un redraw
     if (!has_windows)
     {
         std::cerr << "[DEBUG] Workspace " << id << " está vacío, actualizando estado.\n";
