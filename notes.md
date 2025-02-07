@@ -48,8 +48,18 @@ Ejemplo de juego
 sudo apt install bomber
 
 
+
+
+
 ### Va a ser un tiling window manager
-sudo apt install tint2
+Panel
+sudo apt install libgtk-3-dev
+
+Creamos un panel con una aplicación muy sencilla.
+Sería mejor usar alguna aplicación como waybar, pero para simplificar la configuración. Mejor sería tener ese panel y dejar que se coloque como una ventana flotnte, pero haremos el truco.
+
+### Lanzar
+/mirA --startup-app panel
 
 
 # **� Lista de Tareas y Mejoras para el Compositor**
