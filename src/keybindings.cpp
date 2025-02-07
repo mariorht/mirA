@@ -32,6 +32,11 @@ std::function<bool(MirEvent const*)> KeyBindings::builtin_keybinds(miral::MirRun
             external_client_launcher.launch(std::string("xfce4-terminal"));
             return true;
 
+        case XKB_KEY_g:
+        case XKB_KEY_G:
+            external_client_launcher.launch(std::string("gedit"));
+            return true;
+
         default:
             return false;
         }
