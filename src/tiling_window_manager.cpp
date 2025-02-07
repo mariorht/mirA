@@ -90,9 +90,9 @@ bool TilingWindowManagerPolicy::handle_pointer_event(const MirPointerEvent* even
         mir_pointer_event_axis_value(event, mir_pointer_axis_x),
         mir_pointer_event_axis_value(event, mir_pointer_axis_y)};
 
-    std::cerr << "[DEBUG] Clic detectado en posición: (" << cursor.x.as_int() << ", " << cursor.y.as_int() << ")\n";
 
-    bool found = false;
+    miral::Window top_window;  
+    int highest_layer = -1;
 
     tools.for_each_application([&](miral::ApplicationInfo& app_info)
     {
@@ -101,32 +101,29 @@ bool TilingWindowManagerPolicy::handle_pointer_event(const MirPointerEvent* even
             auto& info = tools.info_for(window);
             Rectangle rect = {info.window().top_left(), info.window().size()};
 
-            std::cerr << "[DEBUG] Probando ventana: " << info.name() 
-                      << " en (" << rect.top_left.x.as_int() << ", " 
-                      << rect.top_left.y.as_int() << ") tamaño (" 
-                      << rect.size.width.as_int() << "x" 
-                      << rect.size.height.as_int() << ")\n";
-
             if (cursor.x.as_int() >= rect.top_left.x.as_int() &&
                 cursor.x.as_int() < rect.top_left.x.as_int() + rect.size.width.as_int() &&
                 cursor.y.as_int() >= rect.top_left.y.as_int() &&
                 cursor.y.as_int() < rect.top_left.y.as_int() + rect.size.height.as_int())
             {
-                std::cerr << "[DEBUG] Ventana encontrada en coordenadas del cursor: " << info.name() << "\n";
-                tools.select_active_window(window);
-                found = true;
-                return;
+                if (static_cast<int>(info.depth_layer()) > highest_layer)
+                {
+                    highest_layer = static_cast<int>(info.depth_layer());
+                    top_window = window;
+                }
             }
         }
     });
 
-    if (!found)
+    if (top_window)
     {
-        std::cerr << "[DEBUG] No se encontró ninguna ventana en la posición del cursor.\n";
+        tools.select_active_window(top_window);
+        return true;
     }
 
-    return found;
+    return false;
 }
+
 
 
 void TilingWindowManagerPolicy::handle_request_drag_and_drop(miral::WindowInfo& window_info)
