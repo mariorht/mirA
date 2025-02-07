@@ -85,19 +85,21 @@ bool TilingWindowManagerPolicy::handle_keyboard_event(const MirKeyboardEvent* ev
 
     MirInputEventModifiers mods = mir_keyboard_event_modifiers(event);
     bool alt = mods & mir_input_event_modifier_alt;
-    // bool ctrl = mods & mir_input_event_modifier_ctrl;
+    bool ctrl = mods & mir_input_event_modifier_ctrl;
     bool shift = mods & mir_input_event_modifier_shift;
 
     switch (mir_keyboard_event_keysym(event))
     {
     // 🔄 Mover el foco (Alt + Tab → Siguiente | Alt + Shift + Tab → Anterior)
-    case XKB_KEY_Tab:
-        if (alt && shift)
+    case XKB_KEY_Left:
+        if (alt && ctrl)
         {
             std::cerr << "[DEBUG] Moviendo foco a la ventana anterior\n";
             tools.focus_prev_within_application();
         }
-        else if (alt)
+        return true;
+    case XKB_KEY_Right:
+        if (alt && ctrl)
         {
             std::cerr << "[DEBUG] Moviendo foco a la siguiente ventana\n";
             tools.focus_next_within_application();
