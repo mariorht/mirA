@@ -94,6 +94,56 @@ bool TilingWindowManagerPolicy::handle_keyboard_event(const MirKeyboardEvent* ev
     bool shift = mods & mir_input_event_modifier_shift;
     bool super = mods & mir_input_event_modifier_meta;
 
+  // � Alternar pantalla completa con Super + F
+    if (super && mir_keyboard_event_keysym(event) == XKB_KEY_f)
+    {
+        auto window = tools.active_window();
+        if (!window) return false;
+
+        auto& window_info = tools.info_for(window);
+        miral::WindowSpecification spec;
+
+        if (window_info.state() == mir_window_state_fullscreen)
+        {
+            std::cerr << "[DEBUG] Saliendo de pantalla completa\n";
+            spec.state() = mir_window_state_restored;
+
+            // � Restaurar el tiling normal
+            tools.modify_window(window, spec);
+            update_tiles({tools.active_output()});
+        }
+        else
+        {
+            std::cerr << "[DEBUG] Activando pantalla completa\n";
+
+            // � Sacar del modo fullscreen cualquier otra ventana en el workspace
+            tools.for_each_application([&](miral::ApplicationInfo& app_info)
+            {
+                for (auto const& w : app_info.windows())
+                {
+                    if (window_workspace_map[w] == active_workspace)
+                    {
+                        auto& info = tools.info_for(w);
+                        if (info.state() == mir_window_state_fullscreen)
+                        {
+                            miral::WindowSpecification restore_spec;
+                            restore_spec.state() = mir_window_state_restored;
+                            tools.modify_window(w, restore_spec);
+                        }
+                    }
+                }
+            });
+
+            // � Poner la ventana activa en pantalla completa
+            spec.state() = mir_window_state_fullscreen;
+            tools.modify_window(window, spec);
+            update_tiles({tools.active_output()});
+
+        }
+
+        return true;
+    }
+
 
     if (super && ctrl)  // ⊞ Win + Ctrl + Número para cambiar de workspace
     {
@@ -243,7 +293,7 @@ bool TilingWindowManagerPolicy::handle_pointer_event(const MirPointerEvent* even
     if (top_window)
     {
         tools.select_active_window(top_window);
-        return false; //No matamos el evento
+        return false; // No interceptamos el evento, dejamos que la app lo reciba
     }
 
     return false;
@@ -259,31 +309,63 @@ void TilingWindowManagerPolicy::handle_request_drag_and_drop(miral::WindowInfo& 
 
 void TilingWindowManagerPolicy::update_tiles(std::vector<Rectangle> const& outputs)
 {
-    std::vector<miral::Window> tiled_windows;
+    (void) outputs;
 
-    // Obtener todas las ventanas del workspace activo
+    std::vector<miral::Window> tiled_windows;
+    miral::Window fullscreen_window;
+
+    // � Buscar si hay una ventana en pantalla completa
     tools.for_each_application([&](miral::ApplicationInfo& app_info)
     {
         for (auto const& window : app_info.windows())
         {
             if (window_workspace_map[window] == active_workspace)
             {
-                tiled_windows.push_back(window);
+                auto& info = tools.info_for(window);
+
+                if (info.state() == mir_window_state_fullscreen)
+                {
+                    fullscreen_window = window;
+                }
+                else
+                {
+                    tiled_windows.push_back(window);
+                }
             }
         }
     });
 
+    // � Si hay una ventana en pantalla completa, ocultamos todas las demás
+    if (fullscreen_window)
+    {
+        std::cerr << "[DEBUG] Modo pantalla completa activado\n";
+
+        miral::WindowSpecification spec;
+        spec.top_left() = {0, 0};
+        spec.size() = {tools.active_output().size.width, tools.active_output().size.height};
+        spec.state() = mir_window_state_fullscreen;
+        tools.modify_window(fullscreen_window, spec);
+
+        // � Ocultar todas las demás ventanas del workspace
+        for (auto& window : tiled_windows)
+        {
+            miral::WindowSpecification hide_spec;
+            hide_spec.state() = mir_window_state_hidden;
+            tools.modify_window(window, hide_spec);
+        }
+        return;
+    }
+
+    // � Si no hay pantalla completa, aplicar tiling normal
     if (tiled_windows.empty()) return;
 
     int num_windows = tiled_windows.size();
     std::cerr << "[DEBUG] Recalculando mosaico en workspace " << active_workspace 
               << ", número de ventanas: " << num_windows << "\n";
 
-    // Obtener el tamaño de la pantalla
     int screen_width = tools.active_output().size.width.as_int();
     int screen_height = tools.active_output().size.height.as_int();
 
-    // Calcular el número de columnas y filas
     int columns = std::ceil(std::sqrt(num_windows));
     int rows = std::ceil(static_cast<float>(num_windows) / columns);
 
@@ -298,6 +380,7 @@ void TilingWindowManagerPolicy::update_tiles(std::vector<Rectangle> const& outpu
         miral::WindowSpecification spec;
         spec.top_left() = {col * window_width, row * window_height};
         spec.size() = {window_width, window_height};
+        spec.state() = mir_window_state_restored;
 
         tools.modify_window(tiled_windows[i], spec);
     }
