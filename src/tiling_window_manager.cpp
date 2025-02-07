@@ -3,6 +3,8 @@
 #include <miral/window_info.h>
 #include <miral/window_manager_tools.h>
 
+#include <iostream> 
+
 using namespace miral;
 
 TilingWindowManagerPolicy::TilingWindowManagerPolicy(miral::WindowManagerTools const& tools)
@@ -71,10 +73,61 @@ bool TilingWindowManagerPolicy::handle_touch_event(const MirTouchEvent* event)
     return false;
 }
 
+
 bool TilingWindowManagerPolicy::handle_pointer_event(const MirPointerEvent* event)
 {
-    return false;
+    using namespace miral::toolkit;
+
+    std::cerr << "[DEBUG] Evento de ratón recibido\n";
+
+    if (mir_pointer_event_action(event) != mir_pointer_action_button_down)
+    {
+        std::cerr << "[DEBUG] Evento de ratón ignorado (no es un clic)\n";
+        return false;
+    }
+
+    Point cursor{
+        mir_pointer_event_axis_value(event, mir_pointer_axis_x),
+        mir_pointer_event_axis_value(event, mir_pointer_axis_y)};
+
+    std::cerr << "[DEBUG] Clic detectado en posición: (" << cursor.x.as_int() << ", " << cursor.y.as_int() << ")\n";
+
+    bool found = false;
+
+    tools.for_each_application([&](miral::ApplicationInfo& app_info)
+    {
+        for (auto const& window : app_info.windows())
+        {
+            auto& info = tools.info_for(window);
+            Rectangle rect = {info.window().top_left(), info.window().size()};
+
+            std::cerr << "[DEBUG] Probando ventana: " << info.name() 
+                      << " en (" << rect.top_left.x.as_int() << ", " 
+                      << rect.top_left.y.as_int() << ") tamaño (" 
+                      << rect.size.width.as_int() << "x" 
+                      << rect.size.height.as_int() << ")\n";
+
+            if (cursor.x.as_int() >= rect.top_left.x.as_int() &&
+                cursor.x.as_int() < rect.top_left.x.as_int() + rect.size.width.as_int() &&
+                cursor.y.as_int() >= rect.top_left.y.as_int() &&
+                cursor.y.as_int() < rect.top_left.y.as_int() + rect.size.height.as_int())
+            {
+                std::cerr << "[DEBUG] Ventana encontrada en coordenadas del cursor: " << info.name() << "\n";
+                tools.select_active_window(window);
+                found = true;
+                return;
+            }
+        }
+    });
+
+    if (!found)
+    {
+        std::cerr << "[DEBUG] No se encontró ninguna ventana en la posición del cursor.\n";
+    }
+
+    return found;
 }
+
 
 void TilingWindowManagerPolicy::handle_request_drag_and_drop(miral::WindowInfo& window_info)
 {
