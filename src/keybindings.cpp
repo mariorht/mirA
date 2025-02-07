@@ -18,7 +18,7 @@ std::function<bool(MirEvent const*)> KeyBindings::builtin_keybinds(miral::MirRun
             return false;
 
         MirInputEventModifiers mods = mir_keyboard_event_modifiers(kev);
-        if (!(mods && mir_input_event_modifier_meta))
+        if (!(mods & mir_input_event_modifier_meta))
             return false;
 
         switch (mir_keyboard_event_keysym(kev))
@@ -35,6 +35,11 @@ std::function<bool(MirEvent const*)> KeyBindings::builtin_keybinds(miral::MirRun
         case XKB_KEY_g:
         case XKB_KEY_G:
             external_client_launcher.launch(std::string("gedit"));
+            return true;
+
+        case XKB_KEY_b:
+        case XKB_KEY_B:
+            external_client_launcher.launch(std::string("bomber"));
             return true;
 
         default:

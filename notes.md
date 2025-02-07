@@ -44,6 +44,9 @@ sudo apt install build-essential cmake pkg-config
 sudo apt install xfce4-terminal
 sudo apt install mir-demos mir-graphics-drivers-desktop
 
+Ejemplo de juego
+sudo apt install bomber
+
 
 ### Va a ser un tiling window manager
 sudo apt install tint2
