@@ -38,6 +38,9 @@ public:
     Rectangle confirm_placement_on_display(const miral::WindowInfo& window_info, MirWindowState new_state,
         Rectangle const& new_placement) override;
 
+    void advise_end() override;
+    void advise_delete_window(miral::WindowInfo const& window_info) override;
+
 private:
     static const int modifier_mask =
         mir_input_event_modifier_alt |
@@ -57,6 +60,9 @@ private:
     void update_surfaces(miral::ApplicationInfo& info, Rectangle const& old_tile, Rectangle const& new_tile);
 
     miral::WindowManagerTools tools;
+
+    bool dirty_tiles = false;  // Flag para marcar cuando necesitamos actualizar el tiling
+
 };
 
 

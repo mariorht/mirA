@@ -4,6 +4,7 @@
 #include <miral/window_manager_tools.h>
 
 #include <iostream> 
+#include <cmath>
 
 using namespace miral;
 
@@ -49,12 +50,8 @@ void TilingWindowManagerPolicy::handle_window_ready(miral::WindowInfo& window_in
 void TilingWindowManagerPolicy::handle_modify_window(miral::WindowInfo& window_info, miral::WindowSpecification const& modifications)
 {
     (void)window_info;
+    (void)modifications;
     
-    if (modifications.state().is_set() && modifications.state().value() == mir_window_state_hidden)
-    {
-        std::cerr << "[DEBUG] Ventana cerrada: " << window_info.name() << ". Actualizando mosaico.\n";
-        update_tiles({tools.active_output()});
-    }
 }
 
 void TilingWindowManagerPolicy::handle_request_move(miral::WindowInfo& window_info, MirInputEvent const* input_event)
@@ -222,9 +219,9 @@ void TilingWindowManagerPolicy::handle_request_drag_and_drop(miral::WindowInfo& 
 
 void TilingWindowManagerPolicy::update_tiles(std::vector<Rectangle> const& outputs)
 {
-    std::vector<miral::Window> tiled_windows;  // Obtener ventanas directamente desde tools
+    std::vector<miral::Window> tiled_windows;
 
-    // Recorrer todas las aplicaciones y añadir sus ventanas
+    // Obtener todas las ventanas activas
     tools.for_each_application([&](miral::ApplicationInfo& app_info)
     {
         for (auto const& window : app_info.windows())
@@ -236,17 +233,49 @@ void TilingWindowManagerPolicy::update_tiles(std::vector<Rectangle> const& outpu
     if (tiled_windows.empty()) return;
 
     int num_windows = tiled_windows.size();
+
+    std::cerr << "[DEBUG] Recalculando mosaico, número de ventanas activas: " << num_windows << "\n";
+
+
     int screen_width = outputs[0].size.width.as_int();
     int screen_height = outputs[0].size.height.as_int();
-    int window_width = screen_width / num_windows;
-    int window_height = screen_height;
+
+    // Calcular el número de columnas y filas para la cuadrícula
+    int columns = std::ceil(std::sqrt(num_windows));  // Cantidad de columnas basada en raíz cuadrada
+    int rows = std::ceil(static_cast<float>(num_windows) / columns);  // Número de filas necesarias
+
+    int window_width = screen_width / columns;
+    int window_height = screen_height / rows;
 
     for (int i = 0; i < num_windows; ++i)
     {
+        int col = i % columns;  // Determinar en qué columna se encuentra la ventana
+        int row = i / columns;  // Determinar en qué fila se encuentra la ventana
+
         miral::WindowSpecification spec;
-        spec.top_left() = {i * window_width, 0};
+        spec.top_left() = {col * window_width, row * window_height};
         spec.size() = {window_width, window_height};
 
         tools.modify_window(tiled_windows[i], spec);
+    }
+}
+
+
+
+void TilingWindowManagerPolicy::advise_delete_window(miral::WindowInfo const& window_info)
+{
+    std::cerr << "[DEBUG] Ventana eliminada: " << window_info.name() << ". Esperando a que desaparezca...\n";
+
+    dirty_tiles = true;  // Marcamos que necesitamos actualizar el tiling
+}
+
+
+void TilingWindowManagerPolicy::advise_end()
+{
+    if (dirty_tiles)
+    {
+        std::cerr << "[DEBUG] Recalculando mosaico al final del ciclo de eventos.\n";
+        update_tiles({tools.active_output()});
+        dirty_tiles = false;  // Restablecemos el flag
     }
 }
