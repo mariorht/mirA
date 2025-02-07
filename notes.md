@@ -48,3 +48,26 @@ sudo apt install mir-demos mir-graphics-drivers-desktop
 ### Va a ser un tiling window manager
 sudo apt install tint2
 
+
+# **� Lista de Tareas y Mejoras para el Compositor**
+
+## **� Problemas Actuales**
+- [ ] **Cambiar de workspace falla si estoy en uno sin ventana**  
+  _Solución parcial: Se actualiza `active_workspace`, pero hay que verificar que la interfaz responde correctamente._
+- [ ] **Poner fondo de escritorio**  
+  _Opciones: Usar `feh`, `swww` (Wayland) o integrar un fondo desde Mir._
+- [ ] **Probar en máquina virtual a ver si abre Tint2**  
+  _Comprobar compatibilidad y si recibe los eventos correctamente._
+
+---
+
+## **� Mejoras y Ampliaciones**
+- [ ] **Mejor gestión del layout**  
+  _Hacer que las ventanas se distribuyan de forma más eficiente según el espacio disponible._
+- [ ] **Soporte para ventanas flotantes**  
+  _Permitir que ciertas ventanas no sigan el tiling y puedan moverse libremente._
+- [ ] **Soporte para vista de stack**  
+  _Un modo donde las ventanas se apilen en un solo contenedor._
+- [ ] **Posibilidad de reordenar ventanas**  
+  _Mover ventanas dentro del mismo workspace sin cambiar su tamaño._
+
