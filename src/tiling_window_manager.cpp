@@ -52,6 +52,7 @@ void TilingWindowManagerPolicy::handle_window_ready(miral::WindowInfo& window_in
         spec.top_left() = {0, 0};  // Arriba, esquina izquierda
         spec.size() = {tools.active_output().size.width, 30};  // Todo el ancho, altura de 30px
         spec.state() = mir_window_state_restored;
+        spec.shell_chrome() = mir_shell_chrome_low; 
         tools.modify_window(window, spec);
 
         panel_window = window;  // Guardamos la referencia del panel
@@ -97,6 +98,10 @@ void TilingWindowManagerPolicy::handle_request_resize(miral::WindowInfo& window_
 
 void TilingWindowManagerPolicy::handle_raise_window(miral::WindowInfo& window_info)
 {
+    if(window_info.name() == "Workspace Panel")
+    {
+        return;
+    }
     tools.select_active_window(window_info.window());
 }
 
@@ -160,6 +165,10 @@ bool TilingWindowManagerPolicy::handle_keyboard_event(const MirKeyboardEvent* ev
     // � Cerrar Ventana Activa (Ctrl + Alt + Q)
     case XKB_KEY_q:
     case XKB_KEY_Q:
+        if(tools.info_for(window).name() == "Workspace Panel")
+        {
+            break;
+        }
         if (mod)
         {
             std::cerr << "[DEBUG] Cerrando ventana activa\n";
@@ -327,6 +336,11 @@ void TilingWindowManagerPolicy::update_tiles(std::vector<Rectangle> const& outpu
 
 void TilingWindowManagerPolicy::advise_delete_window(miral::WindowInfo const& window_info)
 {
+    if(window_info.name() == "Workspace Panel")
+    {
+        return;
+    }
+
     std::cerr << "[DEBUG] Ventana eliminada: " << window_info.name() << ". Esperando a que desaparezca...\n";
     
     window_workspace_map.erase(window_info.window());
