@@ -95,12 +95,12 @@ bool TilingWindowManagerPolicy::handle_keyboard_event(const MirKeyboardEvent* ev
         if (alt && shift)
         {
             std::cerr << "[DEBUG] Moviendo foco a la ventana anterior\n";
-            tools.focus_prev_application();
+            tools.focus_prev_within_application();
         }
         else if (alt)
         {
             std::cerr << "[DEBUG] Moviendo foco a la siguiente ventana\n";
-            tools.focus_next_application();
+            tools.focus_next_within_application();
         }
         return true;
 
