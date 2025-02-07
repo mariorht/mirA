@@ -46,3 +46,5 @@ sudo apt install mir-demos mir-graphics-drivers-desktop
 
 
 ### Va a ser un tiling window manager
+sudo apt install tint2
+

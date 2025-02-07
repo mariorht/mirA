@@ -37,16 +37,20 @@ auto TilingWindowManagerPolicy::confirm_inherited_move(
     return {window_info.window().top_left() + movement, window_info.window().size()};
 }
 
-// void TilingWindowManagerPolicy::handle_window_ready(miral::WindowInfo& window_info)
-// {
-//     update_tiles({tools.active_output()});
+void TilingWindowManagerPolicy::handle_window_ready(miral::WindowInfo& window_info)
+{
+    auto window = window_info.window();
+    window_workspace_map[window] = active_workspace;
+    tools.add_tree_to_workspace(window, workspaces[active_workspace]);
 
-//     // Asegurar que la ventana recibe el foco
-//     if (window_info.can_be_active())
-//     {
-//         tools.select_active_window(window_info.window());
-//     }
-// }
+    update_tiles({tools.active_output()});
+
+    // Asegurar que la ventana recibe el foco
+    if (window_info.can_be_active())
+    {
+        tools.select_active_window(window_info.window());
+    }
+}
 
 void TilingWindowManagerPolicy::handle_modify_window(miral::WindowInfo& window_info, miral::WindowSpecification const& modifications)
 {
@@ -239,7 +243,7 @@ bool TilingWindowManagerPolicy::handle_pointer_event(const MirPointerEvent* even
     if (top_window)
     {
         tools.select_active_window(top_window);
-        return true;
+        return false; //No matamos el evento
     }
 
     return false;
@@ -257,36 +261,39 @@ void TilingWindowManagerPolicy::update_tiles(std::vector<Rectangle> const& outpu
 {
     std::vector<miral::Window> tiled_windows;
 
-    // Obtener todas las ventanas activas
+    // Obtener todas las ventanas del workspace activo
     tools.for_each_application([&](miral::ApplicationInfo& app_info)
     {
         for (auto const& window : app_info.windows())
         {
-            tiled_windows.push_back(window);
+            if (window_workspace_map[window] == active_workspace)
+            {
+                tiled_windows.push_back(window);
+            }
         }
     });
 
     if (tiled_windows.empty()) return;
 
     int num_windows = tiled_windows.size();
+    std::cerr << "[DEBUG] Recalculando mosaico en workspace " << active_workspace 
+              << ", número de ventanas: " << num_windows << "\n";
 
-    std::cerr << "[DEBUG] Recalculando mosaico, número de ventanas activas: " << num_windows << "\n";
+    // Obtener el tamaño de la pantalla
+    int screen_width = tools.active_output().size.width.as_int();
+    int screen_height = tools.active_output().size.height.as_int();
 
-
-    int screen_width = outputs[0].size.width.as_int();
-    int screen_height = outputs[0].size.height.as_int();
-
-    // Calcular el número de columnas y filas para la cuadrícula
-    int columns = std::ceil(std::sqrt(num_windows));  // Cantidad de columnas basada en raíz cuadrada
-    int rows = std::ceil(static_cast<float>(num_windows) / columns);  // Número de filas necesarias
+    // Calcular el número de columnas y filas
+    int columns = std::ceil(std::sqrt(num_windows));
+    int rows = std::ceil(static_cast<float>(num_windows) / columns);
 
     int window_width = screen_width / columns;
     int window_height = screen_height / rows;
 
     for (int i = 0; i < num_windows; ++i)
     {
-        int col = i % columns;  // Determinar en qué columna se encuentra la ventana
-        int row = i / columns;  // Determinar en qué fila se encuentra la ventana
+        int col = i % columns;
+        int row = i / columns;
 
         miral::WindowSpecification spec;
         spec.top_left() = {col * window_width, row * window_height};
@@ -298,23 +305,25 @@ void TilingWindowManagerPolicy::update_tiles(std::vector<Rectangle> const& outpu
 
 
 
-// void TilingWindowManagerPolicy::advise_delete_window(miral::WindowInfo const& window_info)
-// {
-//     std::cerr << "[DEBUG] Ventana eliminada: " << window_info.name() << ". Esperando a que desaparezca...\n";
+void TilingWindowManagerPolicy::advise_delete_window(miral::WindowInfo const& window_info)
+{
+    std::cerr << "[DEBUG] Ventana eliminada: " << window_info.name() << ". Esperando a que desaparezca...\n";
+    
+    window_workspace_map.erase(window_info.window());
 
-//     dirty_tiles = true;  // Marcamos que necesitamos actualizar el tiling
-// }
+    dirty_tiles = true;  // Marcamos que necesitamos actualizar el tiling
+}
 
 
-// void TilingWindowManagerPolicy::advise_end()
-// {
-//     if (dirty_tiles)
-//     {
-//         std::cerr << "[DEBUG] Recalculando mosaico al final del ciclo de eventos.\n";
-//         update_tiles({tools.active_output()});
-//         dirty_tiles = false;  // Restablecemos el flag
-//     }
-// }
+void TilingWindowManagerPolicy::advise_end()
+{
+    if (dirty_tiles)
+    {
+        std::cerr << "[DEBUG] Recalculando mosaico al final del ciclo de eventos.\n";
+        update_tiles({tools.active_output()});
+        dirty_tiles = false;  // Restablecemos el flag
+    }
+}
 
 
 
@@ -362,6 +371,9 @@ void TilingWindowManagerPolicy::switch_workspace(int id)
             }
         }
     });
+
+    // Reorganizar ventanas en el nuevo workspace
+    update_tiles({tools.active_output()});
 }
 
 void TilingWindowManagerPolicy::move_window_to_workspace(miral::WindowInfo& window_info, int workspace_id)
@@ -390,21 +402,3 @@ void TilingWindowManagerPolicy::move_window_to_workspace(miral::WindowInfo& wind
     }
 }
 
-void TilingWindowManagerPolicy::handle_window_ready(miral::WindowInfo& window_info)
-{
-    auto window = window_info.window();
-    window_workspace_map[window] = active_workspace;
-    tools.add_tree_to_workspace(window, workspaces[active_workspace]);
-}
-
-
-void TilingWindowManagerPolicy::advise_delete_window(miral::WindowInfo const& window_info)
-{
-    window_workspace_map.erase(window_info.window());
-}
-
-
-void TilingWindowManagerPolicy::advise_end()
-{
-    // No es necesario actualizar mosaico, solo manejamos workspaces
-}
