@@ -89,152 +89,65 @@ bool TilingWindowManagerPolicy::handle_keyboard_event(const MirKeyboardEvent* ev
         return false;
 
     MirInputEventModifiers mods = mir_keyboard_event_modifiers(event);
-    bool alt = mods & mir_input_event_modifier_alt;
-    bool ctrl = mods & mir_input_event_modifier_ctrl;
-    bool shift = mods & mir_input_event_modifier_shift;
-    bool super = mods & mir_input_event_modifier_meta;
+    bool mod = (mods & mir_input_event_modifier_meta);
 
-  // � Alternar pantalla completa con Super + F
-    if (super && mir_keyboard_event_keysym(event) == XKB_KEY_f)
+    auto window = tools.active_window();
+    if (!window) return false;
+
+    // � Cambio de Workspaces (Ctrl + Alt + Número)
+    if (mod)
     {
-        auto window = tools.active_window();
-        if (!window) return false;
-
-        auto& window_info = tools.info_for(window);
-        miral::WindowSpecification spec;
-
-        if (window_info.state() == mir_window_state_fullscreen)
+        int key = mir_keyboard_event_keysym(event);
+        if (key >= XKB_KEY_1 && key <= XKB_KEY_5)
         {
-            std::cerr << "[DEBUG] Saliendo de pantalla completa\n";
-            spec.state() = mir_window_state_restored;
-
-            // � Restaurar el tiling normal
-            tools.modify_window(window, spec);
-            update_tiles({tools.active_output()});
-        }
-        else
-        {
-            std::cerr << "[DEBUG] Activando pantalla completa\n";
-
-            // � Sacar del modo fullscreen cualquier otra ventana en el workspace
-            tools.for_each_application([&](miral::ApplicationInfo& app_info)
-            {
-                for (auto const& w : app_info.windows())
-                {
-                    if (window_workspace_map[w] == active_workspace)
-                    {
-                        auto& info = tools.info_for(w);
-                        if (info.state() == mir_window_state_fullscreen)
-                        {
-                            miral::WindowSpecification restore_spec;
-                            restore_spec.state() = mir_window_state_restored;
-                            tools.modify_window(w, restore_spec);
-                        }
-                    }
-                }
-            });
-
-            // � Poner la ventana activa en pantalla completa
-            spec.state() = mir_window_state_fullscreen;
-            tools.modify_window(window, spec);
-            update_tiles({tools.active_output()});
-
-        }
-
-        return true;
-    }
-
-
-    if (super && ctrl)  // ⊞ Win + Ctrl + Número para cambiar de workspace
-    {
-        switch (mir_keyboard_event_keysym(event))
-        {
-        case XKB_KEY_1: switch_workspace(1); return true;
-        case XKB_KEY_2: switch_workspace(2); return true;
-        case XKB_KEY_3: switch_workspace(3); return true;
-        case XKB_KEY_4: switch_workspace(4); return true;
-        case XKB_KEY_5: switch_workspace(5); return true;
+            int workspace_id = key - XKB_KEY_1 + 1;  // Convierte XKB_KEY_1 en 1, XKB_KEY_2 en 2, etc.
+            switch_workspace(workspace_id);
+            return true;
         }
     }
 
-    if (super && shift)  // ⊞ Win + Shift + Número para mover ventana al workspace
-    {
-        auto window = tools.active_window();
-        if (!window) return false;
-
-        auto& window_info = tools.info_for(window);
-
-        switch (mir_keyboard_event_keysym(event))
-        {
-        case XKB_KEY_1: move_window_to_workspace(window_info, 1); return true;
-        case XKB_KEY_2: move_window_to_workspace(window_info, 2); return true;
-        case XKB_KEY_3: move_window_to_workspace(window_info, 3); return true;
-        case XKB_KEY_4: move_window_to_workspace(window_info, 4); return true;
-        case XKB_KEY_5: move_window_to_workspace(window_info, 5); return true;
-        }
-    }
-
+    //Resto de atajos de teclado
     switch (mir_keyboard_event_keysym(event))
     {
-    // 🔄 Mover el foco (Alt + Tab → Siguiente | Alt + Shift + Tab → Anterior)
-    case XKB_KEY_Left:
-        if (alt && ctrl)
+    // � Alternar pantalla completa (Ctrl + Alt + F)
+    case XKB_KEY_f:
+        if (mod)
         {
-            std::cerr << "[DEBUG] Moviendo foco a la ventana anterior\n";
-            tools.focus_prev_within_application();
-        }
-        return true;
-    case XKB_KEY_Right:
-        if (alt && ctrl)
-        {
-            std::cerr << "[DEBUG] Moviendo foco a la siguiente ventana\n";
-            tools.focus_next_within_application();
-        }
-        return true;
-
-    // 🔴 Cerrar Ventana Activa (Alt + Q)
-    case XKB_KEY_q:
-    case XKB_KEY_Q:
-        if (alt)
-        {
-            auto window = tools.active_window();
-            if (window)
-            {
-                std::cerr << "[DEBUG] Cerrando ventana activa\n";
-                tools.ask_client_to_close(window);
-            }
+            toggle_fullscreen(window);
             return true;
         }
         break;
 
-    // 🔼🔽 Mover Ventanas en el Stack (Alt + Flechas)
-    // case XKB_KEY_Up:
-    //     if (alt)
-    //     {
-    //         auto window = tools.active_window();
-    //         if (window)
-    //         {
-    //             std::cerr << "[DEBUG] Moviendo ventana arriba en el orden de apilamiento\n";
-    //             tools.raise_tree(window);
-    //         }
-    //         return true;
-    //     }
-    //     break;
-
-    // case XKB_KEY_Down:
-    //     if (alt)
-    //     {
-    //         auto window = tools.active_window();
-    //         if (window)
-    //         {
-    //             std::cerr << "[DEBUG] Bajando ventana en el orden de apilamiento (simulado)\n";
-    //             // No hay una función directa para bajar una ventana, pero podríamos hacer swap con otra ventana
-    //         }
-    //         return true;
-    //     }
-    //     break;
 
 
+    // � Mover Foco (Ctrl + Alt + Izq/Der)
+    case XKB_KEY_Left:
+        if (mod)
+        {
+            std::cerr << "[DEBUG] Moviendo foco a la ventana anterior\n";
+            tools.focus_prev_within_application();
+            return true;
+        }
+        break;
+    case XKB_KEY_Right:
+        if (mod)
+        {
+            std::cerr << "[DEBUG] Moviendo foco a la siguiente ventana\n";
+            tools.focus_next_within_application();
+            return true;
+        }
+        break;
+
+    // � Cerrar Ventana Activa (Ctrl + Alt + Q)
+    case XKB_KEY_q:
+    case XKB_KEY_Q:
+        if (mod)
+        {
+            std::cerr << "[DEBUG] Cerrando ventana activa\n";
+            tools.ask_client_to_close(window);
+            return true;
+        }
+        break;
 
     default:
         return false;  // Dejamos pasar eventos de teclado normales
@@ -420,17 +333,24 @@ void TilingWindowManagerPolicy::create_workspace(int id)
 
 void TilingWindowManagerPolicy::switch_workspace(int id)
 {
+    // � Si el workspace no existe, lo creamos
     if (workspaces.find(id) == workspaces.end())
+    {
+        std::cerr << "[DEBUG] Creando workspace " << id << "\n";
         create_workspace(id);
+    }
 
     std::cerr << "[DEBUG] Cambiando al workspace " << id << "\n";
 
-    // Ocultar ventanas del workspace actual
+    // � Guardamos el workspace activo
+    active_workspace = id;
+
+    // � Ocultar ventanas del workspace actual
     tools.for_each_application([&](miral::ApplicationInfo& app_info)
     {
         for (auto const& window : app_info.windows())
         {
-            if (window_workspace_map[window] == active_workspace)
+            if (window_workspace_map[window] != active_workspace)
             {
                 miral::WindowSpecification spec;
                 spec.state() = mir_window_state_hidden;
@@ -439,15 +359,15 @@ void TilingWindowManagerPolicy::switch_workspace(int id)
         }
     });
 
-    active_workspace = id;
-
-    // Restaurar ventanas del nuevo workspace
+    // � Restaurar ventanas del nuevo workspace
+    bool has_windows = false;
     tools.for_each_application([&](miral::ApplicationInfo& app_info)
     {
         for (auto const& window : app_info.windows())
         {
             if (window_workspace_map[window] == active_workspace)
             {
+                has_windows = true;
                 miral::WindowSpecification spec;
                 spec.state() = mir_window_state_restored;
                 tools.modify_window(window, spec);
@@ -455,33 +375,52 @@ void TilingWindowManagerPolicy::switch_workspace(int id)
         }
     });
 
-    // Reorganizar ventanas en el nuevo workspace
-    update_tiles({tools.active_output()});
-}
-
-void TilingWindowManagerPolicy::move_window_to_workspace(miral::WindowInfo& window_info, int workspace_id)
-{
-    auto window = window_info.window();
-    std::cerr << "[DEBUG] Moviendo ventana al workspace " << workspace_id << "\n";
-
-    // Asegurar que el workspace existe
-    if (workspaces.find(workspace_id) == workspaces.end())
-        create_workspace(workspace_id);
-
-    // Ocultar la ventana en el workspace actual
-    miral::WindowSpecification spec;
-    spec.state() = mir_window_state_hidden;
-    tools.modify_window(window, spec);
-
-    // Asignar ventana al nuevo workspace
-    window_workspace_map[window] = workspace_id;
-    tools.add_tree_to_workspace(window, workspaces[workspace_id]);
-
-    // Si estamos en el workspace al que movimos la ventana, restaurarla
-    if (workspace_id == active_workspace)
+    // � Si no hay ventanas en el workspace, aún así forzamos un redraw
+    if (!has_windows)
     {
-        spec.state() = mir_window_state_restored;
-        tools.modify_window(window, spec);
+        std::cerr << "[DEBUG] Workspace " << id << " está vacío, actualizando estado.\n";
+        update_tiles({tools.active_output()});
     }
 }
 
+
+void TilingWindowManagerPolicy::toggle_fullscreen(miral::Window window)
+{
+    auto& window_info = tools.info_for(window);
+    miral::WindowSpecification spec;
+
+    if (window_info.state() == mir_window_state_fullscreen)
+    {
+        std::cerr << "[DEBUG] Saliendo de pantalla completa\n";
+        spec.state() = mir_window_state_restored;
+        tools.modify_window(window, spec);
+        update_tiles({tools.active_output()});
+    }
+    else
+    {
+        std::cerr << "[DEBUG] Activando pantalla completa\n";
+
+        // � Salir del modo fullscreen en cualquier otra ventana del workspace
+        tools.for_each_application([&](miral::ApplicationInfo& app_info)
+        {
+            for (auto const& w : app_info.windows())
+            {
+                if (window_workspace_map[w] == active_workspace)
+                {
+                    auto& info = tools.info_for(w);
+                    if (info.state() == mir_window_state_fullscreen)
+                    {
+                        miral::WindowSpecification restore_spec;
+                        restore_spec.state() = mir_window_state_restored;
+                        tools.modify_window(w, restore_spec);
+                    }
+                }
+            }
+        });
+
+        // � Poner la ventana activa en pantalla completa
+        spec.state() = mir_window_state_fullscreen;
+        tools.modify_window(window, spec);
+        update_tiles({tools.active_output()});
+    }
+}

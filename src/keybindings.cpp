@@ -18,7 +18,7 @@ std::function<bool(MirEvent const*)> KeyBindings::builtin_keybinds(miral::MirRun
             return false;
 
         MirInputEventModifiers mods = mir_keyboard_event_modifiers(kev);
-        if (!(mods & mir_input_event_modifier_alt) || !(mods & mir_input_event_modifier_ctrl))
+        if (!(mods && mir_input_event_modifier_meta))
             return false;
 
         switch (mir_keyboard_event_keysym(kev))
