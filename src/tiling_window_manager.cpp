@@ -5,6 +5,7 @@
 
 #include <iostream> 
 #include <cmath>
+#include <fstream>  // Para manejar archivos
 
 using namespace miral;
 
@@ -348,6 +349,7 @@ void TilingWindowManagerPolicy::create_workspace(int id)
     }
 }
 
+
 void TilingWindowManagerPolicy::switch_workspace(int id)
 {
     if (workspaces.find(id) == workspaces.end())
@@ -360,6 +362,19 @@ void TilingWindowManagerPolicy::switch_workspace(int id)
 
     active_workspace = id;
 
+    // ✍️ Guardar en el archivo temporal
+    std::ofstream file(WORKSPACE_FILE);
+    if (file.is_open())
+    {
+        file << id << std::endl;
+        file.close();
+    }
+    else
+    {
+        std::cerr << "[ERROR] No se pudo escribir en " << WORKSPACE_FILE << "\n";
+    }
+
+    // Ocultar ventanas del workspace actual
     tools.for_each_application([&](miral::ApplicationInfo& app_info)
     {
         for (auto const& window : app_info.windows())

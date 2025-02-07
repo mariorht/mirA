@@ -76,6 +76,7 @@ private:
     std::map<miral::Window, int> window_workspace_map;   
     std::set<miral::Window> persistent_windows;
     miral::Window panel_window;
+    const std::string WORKSPACE_FILE = "/tmp/workspace_id";
 
 };
 

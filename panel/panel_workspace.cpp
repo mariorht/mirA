@@ -28,6 +28,7 @@ std::string read_workspace()
 // Función para actualizar el label en la UI
 gboolean update_label(gpointer data)
 {
+    (void)data;
     std::string workspace = read_workspace();
     gtk_label_set_text(GTK_LABEL(label), ("Workspace: " + workspace).c_str());
     return G_SOURCE_CONTINUE;  // Seguir ejecutando
