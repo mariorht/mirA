@@ -13,6 +13,7 @@ TilingWindowManagerPolicy::TilingWindowManagerPolicy(miral::WindowManagerTools c
     : tools(tools)
 {
     create_workspace(1);  // Inicializamos con un workspace por defecto
+    saveWorkspaceFile(1);  // Guardamos el workspace por defecto
 }
 
 auto TilingWindowManagerPolicy::place_new_window(
@@ -43,8 +44,7 @@ void TilingWindowManagerPolicy::handle_window_ready(miral::WindowInfo& window_in
     auto window = window_info.window();
     std::string window_name = window_info.name();
 
-    std::cerr << "[DEBUG] Ventana lista: " << window_name << "\n";
-    if (window_name == "Workspace Panel")  // Aseguramos que "panel" siempre esté visible
+    if (window_name == "Workspace Panel")  // Detectamos el panel
     {
         persistent_windows.insert(window);
 
@@ -54,7 +54,7 @@ void TilingWindowManagerPolicy::handle_window_ready(miral::WindowInfo& window_in
         spec.state() = mir_window_state_restored;
         tools.modify_window(window, spec);
 
-        panel_window = window;  // Guardamos la referencia
+        panel_window = window;  // Guardamos la referencia del panel
     }
     else
     {
@@ -64,7 +64,7 @@ void TilingWindowManagerPolicy::handle_window_ready(miral::WindowInfo& window_in
 
     update_tiles({tools.active_output()});
 
-    if (window_info.can_be_active())
+    if (window_info.can_be_active() && window_name != "Workspace Panel")  // ✅ Evita que el panel tome foco
     {
         tools.select_active_window(window);
     }
@@ -206,6 +206,12 @@ bool TilingWindowManagerPolicy::handle_pointer_event(const MirPointerEvent* even
         for (auto const& window : app_info.windows())
         {
             auto& info = tools.info_for(window);
+
+            if(info.name() == "Workspace Panel")
+            {
+                continue;
+            }
+
             Rectangle rect = {info.window().top_left(), info.window().size()};
 
             if (cursor.x.as_int() >= rect.top_left.x.as_int() &&
@@ -361,18 +367,7 @@ void TilingWindowManagerPolicy::switch_workspace(int id)
     std::cerr << "[DEBUG] Cambiando al workspace " << id << "\n";
 
     active_workspace = id;
-
-    // ✍️ Guardar en el archivo temporal
-    std::ofstream file(WORKSPACE_FILE);
-    if (file.is_open())
-    {
-        file << id << std::endl;
-        file.close();
-    }
-    else
-    {
-        std::cerr << "[ERROR] No se pudo escribir en " << WORKSPACE_FILE << "\n";
-    }
+    saveWorkspaceFile(id);
 
     // Ocultar ventanas del workspace actual
     tools.for_each_application([&](miral::ApplicationInfo& app_info)
@@ -409,13 +404,24 @@ void TilingWindowManagerPolicy::switch_workspace(int id)
         }
     });
 
-    if (!has_windows)
-    {
-        std::cerr << "[DEBUG] Workspace " << id << " está vacío, actualizando estado.\n";
-        update_tiles({tools.active_output()});
-    }
+    update_tiles({tools.active_output()});
+    
 }
 
+void TilingWindowManagerPolicy::saveWorkspaceFile(int id)
+{
+    // ✍️ Guardar en el archivo temporal
+    std::ofstream file(WORKSPACE_FILE);
+    if (file.is_open())
+    {
+        file << id << std::endl;
+        file.close();
+    }
+    else
+    {
+        std::cerr << "[ERROR] No se pudo escribir en " << WORKSPACE_FILE << "\n";
+    }
+}
 
 void TilingWindowManagerPolicy::toggle_fullscreen(miral::Window window)
 {

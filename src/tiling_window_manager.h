@@ -67,6 +67,7 @@ private:
     //Workspaces
     void create_workspace(int id);
     void switch_workspace(int id);
+    void saveWorkspaceFile(int id);
     void toggle_fullscreen(miral::Window window);
 
 
