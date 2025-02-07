@@ -63,6 +63,9 @@ private:
 
     bool dirty_tiles = false;  // Flag para marcar cuando necesitamos actualizar el tiling
 
+    //Workspaces
+    
+
 };
 
 

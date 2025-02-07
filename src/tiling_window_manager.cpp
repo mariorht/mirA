@@ -86,7 +86,7 @@ bool TilingWindowManagerPolicy::handle_keyboard_event(const MirKeyboardEvent* ev
     MirInputEventModifiers mods = mir_keyboard_event_modifiers(event);
     bool alt = mods & mir_input_event_modifier_alt;
     bool ctrl = mods & mir_input_event_modifier_ctrl;
-    bool shift = mods & mir_input_event_modifier_shift;
+    // bool shift = mods & mir_input_event_modifier_shift;
 
     switch (mir_keyboard_event_keysym(event))
     {
