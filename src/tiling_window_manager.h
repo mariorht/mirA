@@ -57,7 +57,6 @@ private:
     void update_surfaces(miral::ApplicationInfo& info, Rectangle const& old_tile, Rectangle const& new_tile);
 
     miral::WindowManagerTools tools;
-    std::vector<miral::Window> tiled_windows;
 };
 
 
