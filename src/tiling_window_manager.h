@@ -64,7 +64,15 @@ private:
     bool dirty_tiles = false;  // Flag para marcar cuando necesitamos actualizar el tiling
 
     //Workspaces
-    
+    void create_workspace(int id);
+    void switch_workspace(int id);
+    void move_window_to_workspace(miral::WindowInfo& window_info, int workspace_id);
+
+
+private:
+    int active_workspace = 1;
+    std::map<int, std::shared_ptr<miral::Workspace>> workspaces;
+    std::map<miral::Window, int> window_workspace_map;   
 
 };
 

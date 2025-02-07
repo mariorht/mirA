@@ -11,6 +11,7 @@ using namespace miral;
 TilingWindowManagerPolicy::TilingWindowManagerPolicy(miral::WindowManagerTools const& tools)
     : tools(tools)
 {
+    create_workspace(1);  // Inicializamos con un workspace por defecto
 }
 
 auto TilingWindowManagerPolicy::place_new_window(
@@ -36,16 +37,16 @@ auto TilingWindowManagerPolicy::confirm_inherited_move(
     return {window_info.window().top_left() + movement, window_info.window().size()};
 }
 
-void TilingWindowManagerPolicy::handle_window_ready(miral::WindowInfo& window_info)
-{
-    update_tiles({tools.active_output()});
+// void TilingWindowManagerPolicy::handle_window_ready(miral::WindowInfo& window_info)
+// {
+//     update_tiles({tools.active_output()});
 
-    // Asegurar que la ventana recibe el foco
-    if (window_info.can_be_active())
-    {
-        tools.select_active_window(window_info.window());
-    }
-}
+//     // Asegurar que la ventana recibe el foco
+//     if (window_info.can_be_active())
+//     {
+//         tools.select_active_window(window_info.window());
+//     }
+// }
 
 void TilingWindowManagerPolicy::handle_modify_window(miral::WindowInfo& window_info, miral::WindowSpecification const& modifications)
 {
@@ -86,7 +87,38 @@ bool TilingWindowManagerPolicy::handle_keyboard_event(const MirKeyboardEvent* ev
     MirInputEventModifiers mods = mir_keyboard_event_modifiers(event);
     bool alt = mods & mir_input_event_modifier_alt;
     bool ctrl = mods & mir_input_event_modifier_ctrl;
-    // bool shift = mods & mir_input_event_modifier_shift;
+    bool shift = mods & mir_input_event_modifier_shift;
+    bool super = mods & mir_input_event_modifier_meta;
+
+
+    if (super && ctrl)  // ⊞ Win + Ctrl + Número para cambiar de workspace
+    {
+        switch (mir_keyboard_event_keysym(event))
+        {
+        case XKB_KEY_1: switch_workspace(1); return true;
+        case XKB_KEY_2: switch_workspace(2); return true;
+        case XKB_KEY_3: switch_workspace(3); return true;
+        case XKB_KEY_4: switch_workspace(4); return true;
+        case XKB_KEY_5: switch_workspace(5); return true;
+        }
+    }
+
+    if (super && shift)  // ⊞ Win + Shift + Número para mover ventana al workspace
+    {
+        auto window = tools.active_window();
+        if (!window) return false;
+
+        auto& window_info = tools.info_for(window);
+
+        switch (mir_keyboard_event_keysym(event))
+        {
+        case XKB_KEY_1: move_window_to_workspace(window_info, 1); return true;
+        case XKB_KEY_2: move_window_to_workspace(window_info, 2); return true;
+        case XKB_KEY_3: move_window_to_workspace(window_info, 3); return true;
+        case XKB_KEY_4: move_window_to_workspace(window_info, 4); return true;
+        case XKB_KEY_5: move_window_to_workspace(window_info, 5); return true;
+        }
+    }
 
     switch (mir_keyboard_event_keysym(event))
     {
@@ -122,31 +154,33 @@ bool TilingWindowManagerPolicy::handle_keyboard_event(const MirKeyboardEvent* ev
         break;
 
     // 🔼🔽 Mover Ventanas en el Stack (Alt + Flechas)
-    case XKB_KEY_Up:
-        if (alt)
-        {
-            auto window = tools.active_window();
-            if (window)
-            {
-                std::cerr << "[DEBUG] Moviendo ventana arriba en el orden de apilamiento\n";
-                tools.raise_tree(window);
-            }
-            return true;
-        }
-        break;
+    // case XKB_KEY_Up:
+    //     if (alt)
+    //     {
+    //         auto window = tools.active_window();
+    //         if (window)
+    //         {
+    //             std::cerr << "[DEBUG] Moviendo ventana arriba en el orden de apilamiento\n";
+    //             tools.raise_tree(window);
+    //         }
+    //         return true;
+    //     }
+    //     break;
 
-    case XKB_KEY_Down:
-        if (alt)
-        {
-            auto window = tools.active_window();
-            if (window)
-            {
-                std::cerr << "[DEBUG] Bajando ventana en el orden de apilamiento (simulado)\n";
-                // No hay una función directa para bajar una ventana, pero podríamos hacer swap con otra ventana
-            }
-            return true;
-        }
-        break;
+    // case XKB_KEY_Down:
+    //     if (alt)
+    //     {
+    //         auto window = tools.active_window();
+    //         if (window)
+    //         {
+    //             std::cerr << "[DEBUG] Bajando ventana en el orden de apilamiento (simulado)\n";
+    //             // No hay una función directa para bajar una ventana, pero podríamos hacer swap con otra ventana
+    //         }
+    //         return true;
+    //     }
+    //     break;
+
+
 
     default:
         return false;  // Dejamos pasar eventos de teclado normales
@@ -264,20 +298,113 @@ void TilingWindowManagerPolicy::update_tiles(std::vector<Rectangle> const& outpu
 
 
 
+// void TilingWindowManagerPolicy::advise_delete_window(miral::WindowInfo const& window_info)
+// {
+//     std::cerr << "[DEBUG] Ventana eliminada: " << window_info.name() << ". Esperando a que desaparezca...\n";
+
+//     dirty_tiles = true;  // Marcamos que necesitamos actualizar el tiling
+// }
+
+
+// void TilingWindowManagerPolicy::advise_end()
+// {
+//     if (dirty_tiles)
+//     {
+//         std::cerr << "[DEBUG] Recalculando mosaico al final del ciclo de eventos.\n";
+//         update_tiles({tools.active_output()});
+//         dirty_tiles = false;  // Restablecemos el flag
+//     }
+// }
+
+
+
+void TilingWindowManagerPolicy::create_workspace(int id)
+{
+    if (workspaces.find(id) == workspaces.end())
+    {
+        workspaces[id] = tools.create_workspace();
+    }
+}
+
+void TilingWindowManagerPolicy::switch_workspace(int id)
+{
+    if (workspaces.find(id) == workspaces.end())
+        create_workspace(id);
+
+    std::cerr << "[DEBUG] Cambiando al workspace " << id << "\n";
+
+    // Ocultar ventanas del workspace actual
+    tools.for_each_application([&](miral::ApplicationInfo& app_info)
+    {
+        for (auto const& window : app_info.windows())
+        {
+            if (window_workspace_map[window] == active_workspace)
+            {
+                miral::WindowSpecification spec;
+                spec.state() = mir_window_state_hidden;
+                tools.modify_window(window, spec);
+            }
+        }
+    });
+
+    active_workspace = id;
+
+    // Restaurar ventanas del nuevo workspace
+    tools.for_each_application([&](miral::ApplicationInfo& app_info)
+    {
+        for (auto const& window : app_info.windows())
+        {
+            if (window_workspace_map[window] == active_workspace)
+            {
+                miral::WindowSpecification spec;
+                spec.state() = mir_window_state_restored;
+                tools.modify_window(window, spec);
+            }
+        }
+    });
+}
+
+void TilingWindowManagerPolicy::move_window_to_workspace(miral::WindowInfo& window_info, int workspace_id)
+{
+    auto window = window_info.window();
+    std::cerr << "[DEBUG] Moviendo ventana al workspace " << workspace_id << "\n";
+
+    // Asegurar que el workspace existe
+    if (workspaces.find(workspace_id) == workspaces.end())
+        create_workspace(workspace_id);
+
+    // Ocultar la ventana en el workspace actual
+    miral::WindowSpecification spec;
+    spec.state() = mir_window_state_hidden;
+    tools.modify_window(window, spec);
+
+    // Asignar ventana al nuevo workspace
+    window_workspace_map[window] = workspace_id;
+    tools.add_tree_to_workspace(window, workspaces[workspace_id]);
+
+    // Si estamos en el workspace al que movimos la ventana, restaurarla
+    if (workspace_id == active_workspace)
+    {
+        spec.state() = mir_window_state_restored;
+        tools.modify_window(window, spec);
+    }
+}
+
+void TilingWindowManagerPolicy::handle_window_ready(miral::WindowInfo& window_info)
+{
+    auto window = window_info.window();
+    window_workspace_map[window] = active_workspace;
+    tools.add_tree_to_workspace(window, workspaces[active_workspace]);
+}
+
+
 void TilingWindowManagerPolicy::advise_delete_window(miral::WindowInfo const& window_info)
 {
-    std::cerr << "[DEBUG] Ventana eliminada: " << window_info.name() << ". Esperando a que desaparezca...\n";
-
-    dirty_tiles = true;  // Marcamos que necesitamos actualizar el tiling
+    window_workspace_map.erase(window_info.window());
 }
 
 
 void TilingWindowManagerPolicy::advise_end()
 {
-    if (dirty_tiles)
-    {
-        std::cerr << "[DEBUG] Recalculando mosaico al final del ciclo de eventos.\n";
-        update_tiles({tools.active_output()});
-        dirty_tiles = false;  // Restablecemos el flag
-    }
+    // No es necesario actualizar mosaico, solo manejamos workspaces
 }
