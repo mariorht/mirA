@@ -33,6 +33,12 @@ void TilingWindowManagerPolicy::handle_window_ready(miral::WindowInfo& window_in
 {
     tiled_windows.push_back(window_info.window());
     update_tiles({tools.active_output()});
+
+    // Asegurar que la ventana recibe el foco
+    if (window_info.can_be_active())
+    {
+        tools.select_active_window(window_info.window());
+    }
 }
 
 void TilingWindowManagerPolicy::handle_modify_window(miral::WindowInfo& window_info, miral::WindowSpecification const& modifications)

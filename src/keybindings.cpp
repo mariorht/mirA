@@ -35,5 +35,7 @@ std::function<bool(MirEvent const*)> KeyBindings::builtin_keybinds(miral::MirRun
         default:
             return false;
         }
+
+        return false;
     };
 }
