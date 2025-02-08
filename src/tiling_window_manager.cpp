@@ -64,7 +64,7 @@ void TilingWindowManagerPolicy::handle_window_ready(miral::WindowInfo& window_in
 
     update_tiles({tools.active_output()});
 
-    if (window_info.can_be_active() && window_name != "Workspace Panel")  // ✅ Evita que el panel tome foco
+    if (window_info.can_be_active() && window != panel_window)  // ✅ Evita que el panel tome foco
     {
         tools.select_active_window(window);
     }
@@ -97,7 +97,7 @@ void TilingWindowManagerPolicy::handle_request_resize(miral::WindowInfo& window_
 
 void TilingWindowManagerPolicy::handle_raise_window(miral::WindowInfo& window_info)
 {
-    if(window_info.name() == "Workspace Panel")
+    if(window_info.window() == panel_window)
     {
         return;
     }
@@ -166,7 +166,7 @@ bool TilingWindowManagerPolicy::handle_keyboard_event(const MirKeyboardEvent* ev
     // � Cerrar Ventana Activa (Ctrl + Alt + Q)
     case XKB_KEY_q:
     case XKB_KEY_Q:
-        if(tools.info_for(window).name() == "Workspace Panel")
+        if(window == panel_window)
         {
             break;
         }
@@ -217,7 +217,7 @@ bool TilingWindowManagerPolicy::handle_pointer_event(const MirPointerEvent* even
         {
             auto& info = tools.info_for(window);
 
-            if(info.name() == "Workspace Panel")
+            if(window == panel_window)
             {
                 continue;
             }
@@ -311,7 +311,7 @@ void TilingWindowManagerPolicy::update_tiles(std::vector<Rectangle> const& outpu
 
 void TilingWindowManagerPolicy::advise_delete_window(miral::WindowInfo const& window_info)
 {
-    if(window_info.name() == "Workspace Panel")
+    if(window_info.window() == panel_window)
     {
         return;
     }
