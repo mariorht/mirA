@@ -1,5 +1,3 @@
-# FILE: /mir-compositor/mir-compositor/README.md
-
 # Mir Compositor
 
 This project is a simple compositor based on the MIR framework from Canonical. It serves as an example of how to create a basic window management system using MIR.
