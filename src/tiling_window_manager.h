@@ -43,22 +43,8 @@ public:
     void advise_delete_window(miral::WindowInfo const& window_info) override;
 
 private:
-    static const int modifier_mask =
-        mir_input_event_modifier_alt |
-        mir_input_event_modifier_shift |
-        mir_input_event_modifier_sym |
-        mir_input_event_modifier_ctrl |
-        mir_input_event_modifier_meta;
-
-    void click(Point cursor);
-    void resize(Point cursor);
-    void drag(Point cursor);
-    void toggle(MirWindowState state);
-
-    miral::Application application_under(Point position);
 
     void update_tiles(std::vector<Rectangle> const& outputs);
-    void update_surfaces(miral::ApplicationInfo& info, Rectangle const& old_tile, Rectangle const& new_tile);
 
     miral::WindowManagerTools tools;
 
@@ -73,8 +59,7 @@ private:
 
 private:
     int active_workspace = 1;
-    std::map<int, std::shared_ptr<miral::Workspace>> workspaces;
-    std::set<miral::Window> persistent_windows;
+    std::unordered_map<int, std::shared_ptr<miral::Workspace>> workspaces;
     miral::Window panel_window;
     const std::string WORKSPACE_FILE = "/tmp/workspace_id";
 

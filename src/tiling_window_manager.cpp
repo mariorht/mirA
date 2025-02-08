@@ -46,8 +46,6 @@ void TilingWindowManagerPolicy::handle_window_ready(miral::WindowInfo& window_in
 
     if (window_name == "Workspace Panel")  // Detectamos el panel
     {
-        persistent_windows.insert(window);
-
         miral::WindowSpecification spec;
         spec.top_left() = {0, 0};  // Arriba, esquina izquierda
         spec.size() = {tools.active_output().size.width, 30};  // Todo el ancho, altura de 30px
