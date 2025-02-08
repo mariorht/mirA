@@ -1,4 +1,4 @@
-#include "tiling_window_manager.h"
+#include "tiling_window_manager_policy.h"
 #include <miral/application_info.h>
 #include <miral/window_info.h>
 #include <miral/window_manager_tools.h>

@@ -14,7 +14,7 @@ pkg_check_modules(XKBCOMMON xkbcommon REQUIRED)
 add_executable(mirA 
     src/main.cpp
     src/compositor.cpp
-    src/tiling_window_manager.cpp
+    src/tiling_window_manager_policy.cpp
     src/keybindings.cpp
 )
 

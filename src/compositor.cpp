@@ -1,5 +1,5 @@
 #include "compositor.h"
-#include "tiling_window_manager.h"
+#include "tiling_window_manager_policy.h"
 #include "keybindings.h"
 #include <miral/set_window_management_policy.h>
 #include <miral/append_event_filter.h>
