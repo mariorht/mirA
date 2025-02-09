@@ -205,48 +205,11 @@ bool TilingWindowManagerPolicy::handle_pointer_event(const MirPointerEvent* even
         mir_pointer_event_axis_value(event, mir_pointer_axis_x),
         mir_pointer_event_axis_value(event, mir_pointer_axis_y)};
 
-    std::cerr << "[DEBUG] Click en posición: (" << cursor.x.as_int() << ", "
-              << cursor.y.as_int() << ")\n";
-
-    // � Verificar si hay una ventana en el workspace actual
-    miral::Window detected_window;
-    tools.for_each_window_in_workspace(workspaces[active_workspace], [&](Window const& window)
-    {
-        auto& info = tools.info_for(window);
-        Rectangle rect = {info.window().top_left(), info.window().size()};
-
-        std::cerr << "[DEBUG] Ventana: " << info.name()
-                  << " en [" << rect.top_left.x.as_int() << ", "
-                  << rect.top_left.y.as_int() << "] Tamaño ("
-                  << rect.size.width.as_int() << "x"
-                  << rect.size.height.as_int() << ")\n";
-
-        if (cursor.x.as_int() >= rect.top_left.x.as_int() &&
-            cursor.x.as_int() < rect.top_left.x.as_int() + rect.size.width.as_int() &&
-            cursor.y.as_int() >= rect.top_left.y.as_int() &&
-            cursor.y.as_int() < rect.top_left.y.as_int() + rect.size.height.as_int())
-        {
-            detected_window = window;
-        }
-    });
-
+    miral::Window detected_window =tools.window_at(cursor);
     if (detected_window)
-    {
-        std::cerr << "[DEBUG] Click detectado en ventana del workspace actual: "
-                  << tools.info_for(detected_window).name() << "\n";
-        // return false;
-    }
+        tools.select_active_window(detected_window);
 
-    // � Intentar usar window_at() después de verificar manualmente
-    auto mir_window = tools.window_at(cursor);
-    if (mir_window)
-    {
-        std::cerr << "[DEBUG] Mir detecta ventana: " << tools.info_for(mir_window).name() << "\n";
-        return false;
-    }
-    
-    std::cerr << "[DEBUG] Click en zona sin ventana.\n";
-    return false;
+    return false; // Permitir que otros manejadores de eventos procesen el evento
 }
 
 
