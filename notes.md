@@ -67,12 +67,9 @@ Sería mejor usar alguna aplicación como waybar, pero para simplificar la confi
 # **� Lista de Tareas y Mejoras para el Compositor**
 
 ## **� Problemas Actuales**
-- [ ] **Cambiar de workspace falla si estoy en uno sin ventana**  
-  _Solución parcial: Se actualiza `active_workspace`, pero hay que verificar que la interfaz responde correctamente._
 - [ ] **Poner fondo de escritorio**  
   _Opciones: Usar `feh`, `swww` (Wayland) o integrar un fondo desde Mir._
-- [ ] **Probar en máquina virtual a ver si abre Tint2**  
-  _Comprobar compatibilidad y si recibe los eventos correctamente._
+
 
 ---
 
