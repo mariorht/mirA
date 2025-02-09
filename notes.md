@@ -76,8 +76,9 @@ Aplicación ligera en GTK para evitar configuraciones con otras apps
 # **� Lista de Tareas y Mejoras para el Compositor**
 
 ## **� Problemas Actuales**
-- [ ] **Poner fondo de escritorio**  
-  _Opciones: Usar `feh`, `swww` (Wayland) o integrar un fondo desde Mir._
+- [ ] **Al cambiar de workspace no se coloca solo el foco**  
+- [ ] ** No puedo cambiar una ventana a otro workspace **
+
 
 
 ---
