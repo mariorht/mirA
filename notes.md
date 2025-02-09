@@ -60,8 +60,18 @@ sudo apt install libgtk-3-dev
 Creamos un panel con una aplicación muy sencilla.
 Sería mejor usar alguna aplicación como waybar, pero para simplificar la configuración. Mejor sería tener ese panel y dejar que se coloque como una ventana flotnte, pero haremos el truco.
 
+### Panel
+apt install libgtk-3-dev
+Aplicación ligera en GTK para evitar configuraciones con otras apps
+
+### Wallpaper
+apt install libcairo2-dev libgtk-3-dev
+Aplicación ligera en GTK para evitar configuraciones con otras apps
+
+
 ### Lanzar
-/mirA --startup-app panel
+
+/mirA --startup-app mirA_panel
 
 
 # **� Lista de Tareas y Mejoras para el Compositor**
