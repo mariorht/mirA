@@ -66,14 +66,14 @@ void TilingWindowManagerPolicy::handle_window_ready(miral::WindowInfo& window_in
     {
         tools.select_active_window(window);
     }
+
+    tools.raise_tree(window);
 }
 
 
 void TilingWindowManagerPolicy::handle_modify_window(miral::WindowInfo& window_info, miral::WindowSpecification const& modifications)
 {
-    (void)window_info;
-    (void)modifications;
-    
+    tools.modify_window(window_info, modifications);
 }
 
 void TilingWindowManagerPolicy::handle_request_move(miral::WindowInfo& window_info, MirInputEvent const* input_event)
@@ -192,64 +192,63 @@ bool TilingWindowManagerPolicy::handle_touch_event(const MirTouchEvent* event)
     return false;
 }
 
-
 bool TilingWindowManagerPolicy::handle_pointer_event(const MirPointerEvent* event)
 {
     using namespace miral::toolkit;
 
     if (mir_pointer_event_action(event) != mir_pointer_action_button_down)
     {
-        return false; // No bloquear eventos que no sean clics
+        return false;
     }
 
     Point cursor{
         mir_pointer_event_axis_value(event, mir_pointer_axis_x),
         mir_pointer_event_axis_value(event, mir_pointer_axis_y)};
 
-    miral::Window target_window;
-    int highest_layer = -1;
+    std::cerr << "[DEBUG] Click en posición: (" << cursor.x.as_int() << ", "
+              << cursor.y.as_int() << ")\n";
 
-    // Buscar la ventana más alta en la posición del cursor
-    tools.for_each_application([&](miral::ApplicationInfo& app_info)
+    // � Verificar si hay una ventana en el workspace actual
+    miral::Window detected_window;
+    tools.for_each_window_in_workspace(workspaces[active_workspace], [&](Window const& window)
     {
-        for (auto const& window : app_info.windows())
+        auto& info = tools.info_for(window);
+        Rectangle rect = {info.window().top_left(), info.window().size()};
+
+        std::cerr << "[DEBUG] Ventana: " << info.name()
+                  << " en [" << rect.top_left.x.as_int() << ", "
+                  << rect.top_left.y.as_int() << "] Tamaño ("
+                  << rect.size.width.as_int() << "x"
+                  << rect.size.height.as_int() << ")\n";
+
+        if (cursor.x.as_int() >= rect.top_left.x.as_int() &&
+            cursor.x.as_int() < rect.top_left.x.as_int() + rect.size.width.as_int() &&
+            cursor.y.as_int() >= rect.top_left.y.as_int() &&
+            cursor.y.as_int() < rect.top_left.y.as_int() + rect.size.height.as_int())
         {
-            auto& info = tools.info_for(window);
-
-            if (window == panel_window)
-            {
-                continue; // Ignorar el panel
-            }
-
-            Rectangle rect = {info.window().top_left(), info.window().size()};
-
-            if (cursor.x.as_int() >= rect.top_left.x.as_int() &&
-                cursor.x.as_int() < rect.top_left.x.as_int() + rect.size.width.as_int() &&
-                cursor.y.as_int() >= rect.top_left.y.as_int() &&
-                cursor.y.as_int() < rect.top_left.y.as_int() + rect.size.height.as_int())
-            {
-                if (static_cast<int>(info.depth_layer()) > highest_layer)
-                {
-                    highest_layer = static_cast<int>(info.depth_layer());
-                    target_window = window;
-                }
-            }
+            detected_window = window;
         }
     });
 
-    if (target_window)
+    if (detected_window)
     {
-        // Solo cambiar el foco si no está ya activo
-        if (tools.active_window() != target_window)
-        {
-            tools.select_active_window(target_window);
-        }
-
-        return false; // No consumimos el evento, permitimos que llegue a la aplicación
+        std::cerr << "[DEBUG] Click detectado en ventana del workspace actual: "
+                  << tools.info_for(detected_window).name() << "\n";
+        // return false;
     }
 
+    // � Intentar usar window_at() después de verificar manualmente
+    auto mir_window = tools.window_at(cursor);
+    if (mir_window)
+    {
+        std::cerr << "[DEBUG] Mir detecta ventana: " << tools.info_for(mir_window).name() << "\n";
+        return false;
+    }
+    
+    std::cerr << "[DEBUG] Click en zona sin ventana.\n";
     return false;
 }
+
 
 
 void TilingWindowManagerPolicy::handle_request_drag_and_drop(miral::WindowInfo& window_info)
