@@ -41,8 +41,14 @@ auto TilingWindowManagerPolicy::confirm_inherited_move(
 
 void TilingWindowManagerPolicy::handle_window_ready(miral::WindowInfo& window_info)
 {
+    std::cerr << "[DEBUG] Ventana lista: " << window_info.name() << "\n";
+
     auto window = window_info.window();
     std::string window_name = window_info.name();
+
+    //Si son menús emrejentes no tienen nombre, no hace falta hacer nada con ellos
+    if(window_name == "")
+        return;
 
     if (window_name == "Workspace Panel")  // Detectamos el panel
     {
@@ -232,6 +238,10 @@ void TilingWindowManagerPolicy::update_tiles(std::vector<Rectangle> const& outpu
 
     tools.for_each_window_in_workspace(workspaces[active_workspace], [&](Window const& window)
     {
+        // Si no tiene nombre es un menú emergente, no hacer nada con él
+        if(tools.info_for(window).name() == "")
+            return;
+
         auto& info = tools.info_for(window);
 
         if (info.state() == mir_window_state_fullscreen)
@@ -241,6 +251,7 @@ void TilingWindowManagerPolicy::update_tiles(std::vector<Rectangle> const& outpu
         else
         {
             tiled_windows.push_back(window);
+            std::cerr << "[DEBUG] Ventana en mosaico: " << info.name() << "\n";
         }
     });
 
