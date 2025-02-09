@@ -107,15 +107,16 @@ bool TilingWindowManagerPolicy::handle_keyboard_event(const MirKeyboardEvent* ev
     using namespace miral::toolkit;
 
     if (mir_keyboard_event_action(event) != mir_keyboard_action_down)
-        return false;
+    {
+        return false; // Ignorar eventos de teclado que no sean pulsaciones
+    }
 
     MirInputEventModifiers mods = mir_keyboard_event_modifiers(event);
     bool mod = (mods & mir_input_event_modifier_meta);
 
-    auto window = tools.active_window();
-    if (!window) return false;
+    auto window = tools.active_window(); // Puede ser nulo si no hay ventanas
 
-    // � Cambio de Workspaces (Ctrl + Alt + Número)
+    // � Permitir cambio de workspace aunque no haya ventanas activas
     if (mod)
     {
         int key = mir_keyboard_event_keysym(event);
@@ -123,16 +124,21 @@ bool TilingWindowManagerPolicy::handle_keyboard_event(const MirKeyboardEvent* ev
 
         if (key >= XKB_KEY_1 && key <= XKB_KEY_5)
         {
-            int workspace_id = key - XKB_KEY_1 + 1;  // Convierte XKB_KEY_1 en 1, XKB_KEY_2 en 2, etc.
+            int workspace_id = key - XKB_KEY_1 + 1;
             switch_workspace(workspace_id);
             return true;
         }
     }
 
-    //Resto de atajos de teclado
+    // � Manejar atajos de teclado aunque no haya ventana activa
+    if (!window)
+    {
+        return false; // Sin ventana activa, dejamos pasar eventos normales
+    }
+
+    // � Resto de atajos de teclado solo si hay ventana activa
     switch (mir_keyboard_event_keysym(event))
     {
-    // � Alternar pantalla completa (Ctrl + Alt + F)
     case XKB_KEY_f:
         if (mod)
         {
@@ -141,9 +147,6 @@ bool TilingWindowManagerPolicy::handle_keyboard_event(const MirKeyboardEvent* ev
         }
         break;
 
-
-
-    // � Mover Foco (Ctrl + Alt + Izq/Der)
     case XKB_KEY_Left:
         if (mod)
         {
@@ -161,10 +164,9 @@ bool TilingWindowManagerPolicy::handle_keyboard_event(const MirKeyboardEvent* ev
         }
         break;
 
-    // � Cerrar Ventana Activa (Ctrl + Alt + Q)
     case XKB_KEY_q:
     case XKB_KEY_Q:
-        if(window == panel_window)
+        if (window == panel_window)
         {
             break;
         }
@@ -177,12 +179,11 @@ bool TilingWindowManagerPolicy::handle_keyboard_event(const MirKeyboardEvent* ev
         break;
 
     default:
-        return false;  // Dejamos pasar eventos de teclado normales
+        return false; // Dejamos pasar eventos normales
     }
 
     return false;
 }
-
 
 bool TilingWindowManagerPolicy::handle_touch_event(const MirTouchEvent* event)
 {
@@ -198,26 +199,26 @@ bool TilingWindowManagerPolicy::handle_pointer_event(const MirPointerEvent* even
 
     if (mir_pointer_event_action(event) != mir_pointer_action_button_down)
     {
-        return false;
+        return false; // No bloquear eventos que no sean clics
     }
 
     Point cursor{
         mir_pointer_event_axis_value(event, mir_pointer_axis_x),
         mir_pointer_event_axis_value(event, mir_pointer_axis_y)};
 
-
-    miral::Window top_window;  
+    miral::Window target_window;
     int highest_layer = -1;
 
+    // Buscar la ventana más alta en la posición del cursor
     tools.for_each_application([&](miral::ApplicationInfo& app_info)
     {
         for (auto const& window : app_info.windows())
         {
             auto& info = tools.info_for(window);
 
-            if(window == panel_window)
+            if (window == panel_window)
             {
-                continue;
+                continue; // Ignorar el panel
             }
 
             Rectangle rect = {info.window().top_left(), info.window().size()};
@@ -230,21 +231,25 @@ bool TilingWindowManagerPolicy::handle_pointer_event(const MirPointerEvent* even
                 if (static_cast<int>(info.depth_layer()) > highest_layer)
                 {
                     highest_layer = static_cast<int>(info.depth_layer());
-                    top_window = window;
+                    target_window = window;
                 }
             }
         }
     });
 
-    if (top_window)
+    if (target_window)
     {
-        tools.select_active_window(top_window);
-        return false; // No interceptamos el evento, dejamos que la app lo reciba
+        // Solo cambiar el foco si no está ya activo
+        if (tools.active_window() != target_window)
+        {
+            tools.select_active_window(target_window);
+        }
+
+        return false; // No consumimos el evento, permitimos que llegue a la aplicación
     }
 
     return false;
 }
-
 
 
 void TilingWindowManagerPolicy::handle_request_drag_and_drop(miral::WindowInfo& window_info)
