@@ -61,6 +61,7 @@ private:
     int active_workspace = 1;
     std::unordered_map<int, std::shared_ptr<miral::Workspace>> workspaces;
     miral::Window panel_window;
+    miral::Window wallpaper_window;
     const std::string WORKSPACE_FILE = "/tmp/workspace_id";
 
 };

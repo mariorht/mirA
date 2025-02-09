@@ -71,8 +71,7 @@ Aplicación ligera en GTK para evitar configuraciones con otras apps
 
 ### Lanzar
 
-/mirA --startup-app mirA_panel
-
+./mirA --startup-app "mirA_panel" --startup-app "mirA_wallpaper /opt/projects/mirA/assets/background.png" 
 
 # **� Lista de Tareas y Mejoras para el Compositor**
 

@@ -58,8 +58,17 @@ void TilingWindowManagerPolicy::handle_window_ready(miral::WindowInfo& window_in
         spec.state() = mir_window_state_restored;
         spec.shell_chrome() = mir_shell_chrome_low; 
         tools.modify_window(window, spec);
-
         panel_window = window;  // Guardamos la referencia del panel
+    }
+    else if (window_name == "Wallpaper")  // Detectar el fondo de pantalla
+    {
+        miral::WindowSpecification spec;
+        spec.top_left() = {0, 0};  // Ubicarlo en la esquina superior izquierda
+        spec.size() = {tools.active_output().size.width, tools.active_output().size.height}; // Cubrir toda la pantalla
+        spec.state() = mir_window_state_restored;
+        spec.shell_chrome() = mir_shell_chrome_low; // Evita decoraciones
+        tools.modify_window(window, spec);
+        wallpaper_window = window;  // Guardamos la referencia al fondo
     }
     else
     {
@@ -68,7 +77,7 @@ void TilingWindowManagerPolicy::handle_window_ready(miral::WindowInfo& window_in
 
     update_tiles();
 
-    if (window_info.can_be_active() && window != panel_window)  // ✅ Evita que el panel tome foco
+    if (window_info.can_be_active() && window != panel_window && window != wallpaper_window)  // ✅ Evita que el panel o el fondo tomen foco
     {
         tools.select_active_window(window);
     }
@@ -111,7 +120,7 @@ void TilingWindowManagerPolicy::handle_request_resize(miral::WindowInfo& window_
 
 void TilingWindowManagerPolicy::handle_raise_window(miral::WindowInfo& window_info)
 {
-    if(window_info.window() == panel_window)
+    if(window_info.window() == panel_window || window_info.window() == wallpaper_window)
     {
         return;
     }
@@ -181,7 +190,7 @@ bool TilingWindowManagerPolicy::handle_keyboard_event(const MirKeyboardEvent* ev
 
     case XKB_KEY_q:
     case XKB_KEY_Q:
-        if (window == panel_window)
+        if (window == panel_window || window == wallpaper_window)
         {
             break;
         }
@@ -296,7 +305,7 @@ void TilingWindowManagerPolicy::update_tiles()
 
 void TilingWindowManagerPolicy::advise_delete_window(miral::WindowInfo const& window_info)
 {
-    if(window_info.window() == panel_window)
+    if (window_info.window() == panel_window || window_info.window() == wallpaper_window)
     {
         return;
     }
@@ -345,7 +354,7 @@ void TilingWindowManagerPolicy::switch_workspace(int id)
     // Ocultar todas las ventanas del workspace actual
     tools.for_each_window_in_workspace(workspaces[active_workspace], [&](Window const& window)
     {
-        if (window == panel_window)  // No ocultar el panel
+        if (window == panel_window || window == wallpaper_window)  // No ocultar el panel ni el fondo
             return;
         
         miral::WindowSpecification spec;
@@ -361,7 +370,7 @@ void TilingWindowManagerPolicy::switch_workspace(int id)
     // Mostrar las ventanas del nuevo workspace
     tools.for_each_window_in_workspace(workspaces[active_workspace], [&](Window const& window)
     {
-        if (window == panel_window)  // No ocultar el panel
+        if (window == panel_window || window == wallpaper_window)  // No ocultar el panel ni el fondo
             return;
         
         miral::WindowSpecification spec;
