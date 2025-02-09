@@ -44,7 +44,7 @@ public:
 
 private:
 
-    void update_tiles(std::vector<Rectangle> const& outputs);
+    void update_tiles();
 
     miral::WindowManagerTools tools;
 

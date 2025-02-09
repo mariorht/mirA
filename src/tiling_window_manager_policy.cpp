@@ -46,7 +46,7 @@ void TilingWindowManagerPolicy::handle_window_ready(miral::WindowInfo& window_in
     auto window = window_info.window();
     std::string window_name = window_info.name();
 
-    //Si son menús emrejentes no tienen nombre, no hace falta hacer nada con ellos
+    //Si son menús emerjentes no tienen nombre, no hace falta hacer nada con ellos
     if(window_name == "")
         return;
 
@@ -66,19 +66,29 @@ void TilingWindowManagerPolicy::handle_window_ready(miral::WindowInfo& window_in
         tools.add_tree_to_workspace(window, workspaces[active_workspace]);
     }
 
-    update_tiles({tools.active_output()});
+    update_tiles();
 
     if (window_info.can_be_active() && window != panel_window)  // ✅ Evita que el panel tome foco
     {
         tools.select_active_window(window);
     }
-
-    tools.raise_tree(window);
 }
 
 
 void TilingWindowManagerPolicy::handle_modify_window(miral::WindowInfo& window_info, miral::WindowSpecification const& modifications)
 {
+    std::cerr << "[DEBUG] Modificando ventana: " << window_info.name() 
+              << " | Estado actual: " << window_info.state() << "\n";
+
+    // Si la ventana ya está oculta, no modificarla nuevamente
+    if (window_info.state() == mir_window_state_hidden && modifications.state().is_set() 
+        && modifications.state().value() == mir_window_state_restored)
+    {
+        std::cerr << "[DEBUG] Evitando restaurar ventana oculta en cambio de workspace: " 
+                  << window_info.name() << "\n";
+        return;
+    }
+
     tools.modify_window(window_info, modifications);
 }
 
@@ -126,9 +136,8 @@ bool TilingWindowManagerPolicy::handle_keyboard_event(const MirKeyboardEvent* ev
     if (mod)
     {
         int key = mir_keyboard_event_keysym(event);
-        std::cerr << "[DEBUG] Pulsada tecla " << key << "\n";
 
-        if (key >= XKB_KEY_1 && key <= XKB_KEY_5)
+        if (key >= XKB_KEY_1 && key <= XKB_KEY_9)
         {
             int workspace_id = key - XKB_KEY_1 + 1;
             switch_workspace(workspace_id);
@@ -226,9 +235,8 @@ void TilingWindowManagerPolicy::handle_request_drag_and_drop(miral::WindowInfo& 
     // No soportamos drag & drop en tiling
 }
 
-void TilingWindowManagerPolicy::update_tiles(std::vector<Rectangle> const& outputs)
+void TilingWindowManagerPolicy::update_tiles()
 {
-    (void)outputs;
     std::vector<miral::Window> tiled_windows;
     miral::Window fullscreen_window;
 
@@ -265,7 +273,8 @@ void TilingWindowManagerPolicy::update_tiles(std::vector<Rectangle> const& outpu
         return;
     }
 
-    if (tiled_windows.empty()) return;
+    if (tiled_windows.empty()) 
+        return;
 
     int num_windows = tiled_windows.size();
     int columns = std::ceil(std::sqrt(num_windows));
@@ -308,7 +317,7 @@ void TilingWindowManagerPolicy::advise_end()
     if (dirty_tiles)
     {
         std::cerr << "[DEBUG] Recalculando mosaico al final del ciclo de eventos.\n";
-        update_tiles({tools.active_output()});
+        update_tiles();
         dirty_tiles = false;  // Restablecemos el flag
     }
 }
@@ -336,35 +345,35 @@ void TilingWindowManagerPolicy::switch_workspace(int id)
     // Ocultar todas las ventanas del workspace actual
     tools.for_each_window_in_workspace(workspaces[active_workspace], [&](Window const& window)
     {
-        if (window != panel_window)  // No ocultar el panel
-        {
-            miral::WindowSpecification spec;
-            spec.state() = mir_window_state_hidden;
-            tools.modify_window(window, spec);
-        }
+        if (window == panel_window)  // No ocultar el panel
+            return;
+        
+        miral::WindowSpecification spec;
+        spec.state() = mir_window_state_hidden;
+        tools.modify_window(window, spec);
+        std::cerr << "[DEBUG] Ocultando ventana " << tools.info_for(window).name() << "\n";
+        
     });
 
     active_workspace = id;
     saveWorkspaceFile(id);
 
     // Mostrar las ventanas del nuevo workspace
-    bool has_windows = false;
     tools.for_each_window_in_workspace(workspaces[active_workspace], [&](Window const& window)
     {
-        if (window != panel_window)
-        {
-            has_windows = true;
-            miral::WindowSpecification spec;
-            spec.state() = mir_window_state_restored;
-            tools.modify_window(window, spec);
-        }
+        if (window == panel_window)  // No ocultar el panel
+            return;
+        
+        miral::WindowSpecification spec;
+        spec.state() = mir_window_state_restored;
+        tools.modify_window(window, spec);
+        std::cerr << "[DEBUG] Mostrando ventana " << tools.info_for(window).name() << "\n";
+        
     });
 
-    // Solo recalcular el mosaico si hay ventanas en el nuevo workspace
-    if (has_windows)
-    {
-        update_tiles({tools.active_output()});
-    }
+
+    update_tiles();
+
 }
 
 void TilingWindowManagerPolicy::saveWorkspaceFile(int id)
@@ -410,5 +419,5 @@ void TilingWindowManagerPolicy::toggle_fullscreen(miral::Window window)
     }
 
     tools.modify_window(window, spec);
-    update_tiles({tools.active_output()});
+    update_tiles();
 }
