@@ -30,7 +30,7 @@ public:
     bool handle_pointer_event(MirPointerEvent const* event) override;
     void handle_raise_window(miral::WindowInfo& window_info) override;
 
-    void handle_request_drag_and_drop(miral::WindowInfo& window_info) override;
+    void handle_request_drag_and_drop(miral::WindowInfo& window_info);
     void handle_request_move(miral::WindowInfo& window_info, MirInputEvent const* input_event) override;
     void handle_request_resize(miral::WindowInfo& window_info, MirInputEvent const* input_event, MirResizeEdge edge) override;
 
