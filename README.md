@@ -22,6 +22,9 @@ sudo add-apt-repository ppa:mir-team/release
 sudo apt update
 sudo apt install libmiral-dev mir-graphics-drivers-desktop
 sudo apt install build-essential cmake pkg-config
+sudo apt install libgtk-3-dev libcairo2-dev libxkbcommon-dev 
+# Si quieres probar con un juego
+sudo apt install bomber
 ```
 
 ## **📥 Install from Releases**  
