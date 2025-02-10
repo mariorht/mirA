@@ -81,16 +81,6 @@ set(CPACK_GENERATOR "DEB")
 # Dependencias del paquete
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "libmiral-dev, mir-graphics-drivers-desktop, xfce4-terminal, bomber, libgtk-3-dev, libcairo2-dev , libxkbcommon-dev")
 
-# Ruta de instalación para binarios y assets
-install(TARGETS mirA_panel mirA_wallpaper mirA
-    RUNTIME DESTINATION /usr/local/bin
-)
-
-install(DIRECTORY assets/ DESTINATION /usr/share/mirA/assets
-    FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-    DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-)
-
 # Información del paquete DEB
 set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
 set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
