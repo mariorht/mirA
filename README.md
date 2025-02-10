@@ -24,7 +24,7 @@ sudo apt install miral-dev libgtk-3-dev libcairo2-dev libxkbcommon-dev
 ## 🔧 Building mirA
 Clone the repository and compile the project:
 ```sh
-git clone https://github.com/yourusername/mirA.git
+git clone https://github.com/mariorht/mirA.git
 cd mirA
 mkdir build && cd build
 cmake ..
