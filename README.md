@@ -31,7 +31,7 @@ sudo apt install bomber
 
 You can download the latest stable version of **mirA** from the official releases page:  
 
-👉 **[mirA Releases](https://github.com/mariorht/mirA/releases/tag/v0.1)**  
+👉 **[mirA Releases](https://github.com/mariorht/mirA/releases)**  
 
 ### **📦 Installing the `.deb` Package**  
 1️⃣ **Download the latest `.deb` file** from the releases page.  
