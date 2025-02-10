@@ -52,7 +52,7 @@ mirA --startup-app mirA_panel --startup-app "mirA_wallpaper /usr/share/mirA/asse
 | Shortcut | Action |
 |----------|--------|
 | **Meta + 1-9** | Switch workspace |
-| **Meta + Shift + 1-9** | Move window to workspace |
+| **Meta + Ctrl + 1-9** | Move window to workspace |
 | **Meta + Left/Right** | Switch focus between windows |
 | **Meta + F** | Toggle fullscreen |
 | **Meta + Q** | Close active window |
