@@ -2,6 +2,8 @@
 
 mirA is a lightweight **tiling window manager** built on top of **Mir**. It provides efficient window management with **workspaces, keyboard-driven controls, and auto-tiling**. The goal of mirA is to offer a structured and intuitive window management experience while keeping the implementation simple.
 
+You can see a video demonstration on [mirA_demo.mp4](mirA_demo.mp4).
+
 ### **Design Decisions**
 
 ##### **1. Grid-Based Tiling Layout**
