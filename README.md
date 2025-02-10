@@ -41,6 +41,8 @@ mirA **does not support** manual dragging or resizing of windows. Instead:
   _Allow moving windows within the same workspace._
 - [ ] **Resize windows**  
   _Allow resize windows._
+- [ ] **Support for 3rd party panels and wallpapers**  
+  _Support applications like waybar or feh that implements panel bars and wallpapers_
 
 
 ---

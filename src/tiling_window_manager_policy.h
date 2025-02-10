@@ -61,6 +61,7 @@ private:
     miral::Window panel_window;
     miral::Window wallpaper_window;
 
+    // Configuration for workspace and panel
     const std::string WORKSPACE_FILE = "/tmp/workspace_id";
     const std::string WORKSPACE_PROGRAM_NAME = "Workspace Panel";
     const std::string WALLPAPER_PROGRAM_NAME = "Wallpaper";
