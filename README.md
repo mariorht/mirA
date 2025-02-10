@@ -37,7 +37,7 @@ You can download the latest stable version of **mirA** from the official release
 1️⃣ **Download the latest `.deb` file** from the releases page.  
 2️⃣ **Install it using `dpkg`**:  
    ```sh
-   sudo dpkg -i mirA-*.deb
+   sudo apt install ./mirA-*.deb
    ```
 
 ### **🚀 Running mirA**
@@ -65,7 +65,7 @@ cpack -G DEB
 ```
 Then install it:
 ```sh
-sudo dpkg -i mirA-1.0.0-Linux.deb
+sudo apt install ./mirA-*.deb
 ```
 
 ## ⌨️ Keyboard Shortcuts
@@ -94,7 +94,7 @@ mirA/
 ## 📜 Uninstalling mirA
 If installed via `.deb`, remove it with:
 ```sh
-sudo dpkg -r mirA
+sudo apt remove mirA
 ```
 If installed manually:
 ```sh
