@@ -43,7 +43,7 @@ mirA **does not support** manual dragging or resizing of windows. Instead:
 
 ---
 
-## **🌍 Useful Links**
+## **Useful Links**
 📖 **Official Mir Documentation:**  
 - [Getting Started with Mir](https://canonical-mir.readthedocs-hosted.com/stable/tutorial/getting-started-with-mir/)  
 - [Writing Your First Wayland Compositor](https://canonical-mir.readthedocs-hosted.com/stable/tutorial/write-your-first-wayland-compositor/)  
@@ -56,8 +56,8 @@ mirA **does not support** manual dragging or resizing of windows. Instead:
 - [Mir GitHub Repository](https://github.com/canonical/mir)  
 - [Mir PDF Documentation (v2.17.2)](https://canonical-mir.readthedocs-hosted.com/_/downloads/en/v2.17.2/pdf/)  
 
-## ** Dependencies & Installation**
-### ** Install Mir and Build Tools**
+## **Dependencies & Installation**
+### **Install Mir and Build Tools**
 ```sh
 sudo add-apt-repository ppa:mir-team/release
 sudo apt update
@@ -65,20 +65,20 @@ sudo apt install libmiral-dev mir-graphics-drivers-desktop
 sudo apt install build-essential cmake pkg-config
 ```
 
-### ** Install Required Packages**
+### **Install Required Packages**
 ```sh
 sudo apt install xfce4-terminal
 sudo apt install mir-demos mir-graphics-drivers-desktop
 ```
 
-### ** (Optional) Install a Game for Testing**
+### **(Optional) Install a Game for Testing**
 ```sh
 sudo apt install bomber
 ```
 
 ---
 
-## ** Components**
+## **Components**
 ### **Tiling Window Manager**
 This is the core of mirA, managing windows in a **tiling layout** with support for multiple workspaces.
 
