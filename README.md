@@ -18,7 +18,10 @@ To build and run mirA, you need:
 
 Install them on Ubuntu/Debian:
 ```sh
-sudo apt install miral-dev libgtk-3-dev libcairo2-dev libxkbcommon-dev
+sudo add-apt-repository ppa:mir-team/release
+sudo apt update
+sudo apt install libmiral-dev mir-graphics-drivers-desktop
+sudo apt install build-essential cmake pkg-config
 ```
 
 ## **📥 Install from Releases**  
