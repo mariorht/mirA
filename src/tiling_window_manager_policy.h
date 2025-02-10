@@ -64,6 +64,7 @@ private:
     const std::string WORKSPACE_FILE = "/tmp/workspace_id";
     const std::string WORKSPACE_PROGRAM_NAME = "Workspace Panel";
     const std::string WALLPAPER_PROGRAM_NAME = "Wallpaper";
+    const int HEIGHT_PANEL = 30;
 
     bool dirty_tiles = false;  // If true update_tiles() will be called on the next frame
 

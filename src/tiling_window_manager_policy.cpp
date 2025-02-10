@@ -44,29 +44,31 @@ void TilingWindowManagerPolicy::handle_window_ready(miral::WindowInfo& window_in
     auto window = window_info.window();
     std::string window_name = window_info.name();
 
-    //Si son menús emerjentes no tienen nombre, no hace falta hacer nada con ellos
+    // If they are popup menus, they do not have a name, no need to handle them
     if(window_name == "")
         return;
 
-    if (window_name == WORKSPACE_PROGRAM_NAME)  // Detectamos el panel
+    if (window_name == WORKSPACE_PROGRAM_NAME)  // Catch the panel
     {
         miral::WindowSpecification spec;
-        spec.top_left() = {0, 0};  // Arriba, esquina izquierda
-        spec.size() = {tools.active_output().size.width, 30};  // Todo el ancho, altura de 30px
+        spec.top_left() = {0, 0};
+        spec.size() = {tools.active_output().size.width, HEIGHT_PANEL};
         spec.state() = mir_window_state_restored;
         spec.shell_chrome() = mir_shell_chrome_low; 
         tools.modify_window(window, spec);
-        panel_window = window;  // Guardamos la referencia del panel
+
+        panel_window = window;  // Save panel for later reference
     }
-    else if (window_name == WALLPAPER_PROGRAM_NAME)  // Detectar el fondo de pantalla
+    else if (window_name == WALLPAPER_PROGRAM_NAME)  // Catch the wallpaper
     {
         miral::WindowSpecification spec;
-        spec.top_left() = {0, 0};  // Ubicarlo en la esquina superior izquierda
-        spec.size() = {tools.active_output().size.width, tools.active_output().size.height}; // Cubrir toda la pantalla
+        spec.top_left() = {0, 0}; 
+        spec.size() = {tools.active_output().size.width, tools.active_output().size.height};
         spec.state() = mir_window_state_restored;
-        spec.shell_chrome() = mir_shell_chrome_low; // Evita decoraciones
+        spec.shell_chrome() = mir_shell_chrome_low;
         tools.modify_window(window, spec);
-        wallpaper_window = window;  // Guardamos la referencia al fondo
+
+        wallpaper_window = window;  // Save wallpaper for later reference
     }
     else
     {
@@ -75,7 +77,7 @@ void TilingWindowManagerPolicy::handle_window_ready(miral::WindowInfo& window_in
 
     dirty_tiles = true;
 
-    if (window_info.can_be_active() && window != panel_window && window != wallpaper_window)  // ✅ Evita que el panel o el fondo tomen foco
+    if (window_info.can_be_active() && window != panel_window && window != wallpaper_window)  // No focus on panel or wallpaper
     {
         tools.select_active_window(window);
     }
@@ -84,9 +86,8 @@ void TilingWindowManagerPolicy::handle_window_ready(miral::WindowInfo& window_in
 
 void TilingWindowManagerPolicy::handle_modify_window(miral::WindowInfo& window_info, miral::WindowSpecification const& modifications)
 {
-
-    // Si la ventana ya está oculta, no modificarla nuevamente
-    // No tengo claro por qué se llama a handle_modify_window con la ventana ya oculta
+    // If window is already hidden, do not modify it again
+    // I'm not sure why handle_modify_window is called with the window already hidden
     if (window_info.state() == mir_window_state_hidden && modifications.state().value() == mir_window_state_restored)
         return;
 
@@ -98,7 +99,7 @@ void TilingWindowManagerPolicy::handle_request_move(miral::WindowInfo& window_in
     (void) window_info;
     (void) input_event;
 
-    // No permitimos mover ventanas en tiling
+    // Move windows is not supported
 }
 
 void TilingWindowManagerPolicy::handle_request_resize(miral::WindowInfo& window_info, MirInputEvent const* input_event, MirResizeEdge edge)
@@ -107,7 +108,7 @@ void TilingWindowManagerPolicy::handle_request_resize(miral::WindowInfo& window_
     (void) input_event;
     (void) edge;
 
-    // No permitimos redimensionar en tiling
+    // Resize windows is not supported
 }
 
 void TilingWindowManagerPolicy::handle_raise_window(miral::WindowInfo& window_info)
@@ -125,16 +126,16 @@ bool TilingWindowManagerPolicy::handle_keyboard_event(const MirKeyboardEvent* ev
 
     if (mir_keyboard_event_action(event) != mir_keyboard_action_down)
     {
-        return false; // Ignorar eventos de teclado que no sean pulsaciones
+        return false;
     }
 
     MirInputEventModifiers mods = mir_keyboard_event_modifiers(event);
     bool mod = (mods & mir_input_event_modifier_meta);
     bool ctrl = (mods & mir_input_event_modifier_ctrl_left);
 
-    auto window = tools.active_window(); // Puede ser nulo si no hay ventanas
+    auto window = tools.active_window();
 
-    // � Permitir cambio de workspace
+    // Worksapces
     if (mod)
     {
         int key = mir_keyboard_event_keysym(event);
@@ -156,13 +157,13 @@ bool TilingWindowManagerPolicy::handle_keyboard_event(const MirKeyboardEvent* ev
         }
     }
 
-    // � Manejar atajos de teclado aunque no haya ventana activa
+    // if not window active let the event pass
     if (!window)
     {
-        return false; // Sin ventana activa, dejamos pasar eventos normales
+        return false; 
     }
 
-    // � Resto de atajos de teclado solo si hay ventana activa
+    // Keyboards shortcuts for window management
     switch (mir_keyboard_event_keysym(event))
     {
     case XKB_KEY_f:
@@ -202,7 +203,7 @@ bool TilingWindowManagerPolicy::handle_keyboard_event(const MirKeyboardEvent* ev
         break;
 
     default:
-        return false; // Dejamos pasar eventos normales
+        return false;
     }
 
     return false;
@@ -232,7 +233,7 @@ bool TilingWindowManagerPolicy::handle_pointer_event(const MirPointerEvent* even
     if (detected_window)
         tools.select_active_window(detected_window);
 
-    return false; // Permitir que otros manejadores de eventos procesen el evento
+    return false;
 }
 
 
@@ -240,7 +241,7 @@ bool TilingWindowManagerPolicy::handle_pointer_event(const MirPointerEvent* even
 void TilingWindowManagerPolicy::handle_request_drag_and_drop(miral::WindowInfo& window_info)
 {
     (void) window_info;
-    // No soportamos drag & drop en tiling
+    // Drag and drop is not supported
 }
 
 void TilingWindowManagerPolicy::update_tiles()
@@ -254,7 +255,7 @@ void TilingWindowManagerPolicy::update_tiles()
 
     tools.for_each_window_in_workspace(workspaces[active_workspace], [&](Window const& window)
     {
-        // Si no tiene nombre es un menú emergente, no hacer nada con él
+        // If it doesn't have a name, it's a popup menu, do nothing with it
         if(tools.info_for(window).name() == "")
             return;
 
@@ -313,7 +314,7 @@ void TilingWindowManagerPolicy::advise_delete_window(miral::WindowInfo const& wi
         tools.remove_tree_from_workspace(window_info.window(), workspace);
     });
 
-    dirty_tiles = true;  // Marcamos que necesitamos actualizar el tiling
+    dirty_tiles = true;  // Tiling will be updated on the next frame
 }
 
 
@@ -322,7 +323,7 @@ void TilingWindowManagerPolicy::advise_end()
     if (dirty_tiles)
     {
         update_tiles();
-        dirty_tiles = false;  // Restablecemos el flag
+        dirty_tiles = false;
     }
 }
 
@@ -345,10 +346,10 @@ void TilingWindowManagerPolicy::switch_workspace(int id)
     }
 
 
-    // Ocultar todas las ventanas del workspace actual
+    // Hide all windows in the current workspace
     tools.for_each_window_in_workspace(workspaces[active_workspace], [&](Window const& window)
     {
-        if (window == panel_window || window == wallpaper_window)  // No ocultar el panel ni el fondo
+        if (window == panel_window || window == wallpaper_window) // No hide the panel or the wallpaper
             return;
 
         miral::WindowSpecification spec;
@@ -359,15 +360,15 @@ void TilingWindowManagerPolicy::switch_workspace(int id)
     active_workspace = id;
     saveWorkspaceFile(id);
 
-    // Restaurar ventanas del nuevo workspace y seleccionar la primera ventana visible
+    // Restore windows from the new workspace and select the first visible window
     miral::Window first_window;
 
     tools.for_each_window_in_workspace(workspaces[active_workspace], [&](Window const& window)
     {
-        if (window == panel_window || window == wallpaper_window)  // No ocultar el panel ni el fondo
+        if (window == panel_window || window == wallpaper_window)  // No hide the panel or the wallpaper
             return;
 
-        if (!first_window)  // Seleccionar la primera ventana restaurada
+        if (!first_window)
         {
             first_window = window;
         }
@@ -377,7 +378,7 @@ void TilingWindowManagerPolicy::switch_workspace(int id)
         tools.modify_window(window, spec);
     });
 
-    // Seleccionar la primera ventana visible
+    // Focus on the first window
     if (first_window)
         tools.select_active_window(first_window);
 
@@ -387,7 +388,7 @@ void TilingWindowManagerPolicy::switch_workspace(int id)
 
 void TilingWindowManagerPolicy::saveWorkspaceFile(int id)
 {
-    // ✍️ Guardar en el archivo temporal
+    // Save the workspace id to a file for the panel app
     std::ofstream file(WORKSPACE_FILE);
     if (file.is_open())
     {
@@ -440,21 +441,21 @@ void TilingWindowManagerPolicy::move_window_to_workspace(miral::Window window, i
     
 
 
-    // Remover la ventana del workspace actual
+    // Remove window from all workspaces
     tools.for_each_workspace_containing(window, [&](std::shared_ptr<Workspace> const& workspace)
     {
         tools.remove_tree_from_workspace(window, workspace);
     });
 
-    // Agregar la ventana al nuevo workspace
+    // Add window to the new workspace
     tools.add_tree_to_workspace(window, workspaces[workspace_id]);
 
-    // Ocultar la ventana en el workspace actual
+    // Hide the window in the current workspace
     miral::WindowSpecification spec;
     spec.state() = mir_window_state_hidden;
     tools.modify_window(window, spec);
 
-    // Si estamos en el workspace al que la movimos, restaurarla y darle foco
+    // If we are in the workspace we moved it to, restore it and give it focus
     if (workspace_id == active_workspace)
     {
         spec.state() = mir_window_state_restored;
