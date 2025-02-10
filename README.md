@@ -101,11 +101,11 @@ sudo apt install ./mirA-*.deb
 
 You can download the latest stable version of **mirA** from the releases page:  
 
-👉 **[mirA Releases](https://github.com/mariorht/mirA/releases)**  
+**[mirA Releases](https://github.com/mariorht/mirA/releases)**  
 
-### **📦 Installing the `.deb` Package**  
-1️⃣ **Download the latest `.deb` file** from the releases page.  
-2️⃣ **Install it**:  
+### **Installing the `.deb` Package**  
+ **Download the latest `.deb` file** from the releases page.  
+ **Install it**:  
    ```sh
    sudo apt install ./mirA-*.deb
    ```
