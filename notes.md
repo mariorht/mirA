@@ -1,6 +1,45 @@
-# **mirA - Tiling Window Manager for Mir**  
+## **mirA: A Lightweight Tiling Window Manager for Mir**
 
-mirA is a lightweight **tiling window manager** built on top of **Mir**. It provides efficient window management with **workspaces, keyboard-driven controls, and auto-tiling**.  
+mirA is a lightweight **tiling window manager** built on top of **Mir**. It provides efficient window management with **workspaces, keyboard-driven controls, and auto-tiling**. The goal of mirA is to offer a structured and intuitive window management experience while keeping the implementation simple.
+
+### **Design Decisions**
+
+#### **1. Grid-Based Tiling Layout**
+mirA organizes windows in a **grid pattern** rather than dynamic stacking or floating layouts. This choice ensures that all open windows are neatly arranged without overlapping.
+
+#### **2. Workspace Support**
+mirA implements **workspaces**, allowing users to group applications into separate virtual desktops.
+- Users can **switch between workspaces** using keyboard shortcuts.
+- Windows can be **moved across workspaces**, allowing dynamic organization based on user needs.
+
+#### **3. Fullscreen Support**
+MirA includes **fullscreen mode**. When a window is set to fullscreen:
+- All other windows are hidden.
+- The active window occupies the entire screen.
+- Exiting fullscreen restores the previous tiling layout.
+
+#### **4. Minimalist Approach to System UI**
+To simplify configuration and avoid complexity, mirA includes two **special-purpose applications**:
+- **A panel application:** Acts as a lightweight system bar for essential functions.
+- **A wallpaper application:** Manages the desktop background without interfering with tiling behavior.
+
+#### **5. No Drag & Drop or Window Resizing**
+mirA **does not support** manual dragging or resizing of windows. Instead:
+- Windows are arranged according to the **grid layout**.
+- Users can move windows between workspaces, but manual adjustments to size and position are not required.
+
+---
+
+## ** Future Improvements**
+- [ ] **Better layout management**  
+  _Improve how windows are tiled dynamically based on available space._
+- [ ] **Floating window support**  
+  _Allow certain windows to be free-floating outside the tiling layout._
+- [ ] **Stack view support**  
+  _Enable a mode where windows stack within a container._
+- [ ] **Reorder windows**  
+  _Allow moving windows within the same workspace without resizing._
+
 
 ---
 
@@ -17,35 +56,8 @@ mirA is a lightweight **tiling window manager** built on top of **Mir**. It prov
 - [Mir GitHub Repository](https://github.com/canonical/mir)  
 - [Mir PDF Documentation (v2.17.2)](https://canonical-mir.readthedocs-hosted.com/_/downloads/en/v2.17.2/pdf/)  
 
----
-
-## **💻 System Information**
-```
-        #####           developer@asus-mario-popos 
-       #######          -------------------------- 
-       ##O#O##          OS: Pop!_OS 20.04 LTS x86_64 
-       #######          Host: ROG Zephyrus G15 GA502IV_GA502IV 1.0 
-     ###########        Kernel: 6.0.12-76060012-generic 
-    #############       Uptime: 1 hour, 52 mins 
-   ###############      Packages: 3112 (dpkg), 33 (flatpak), 13 (snap) 
-   ################     Shell: fish 3.1.0 
-  #################     Resolution: 1920x1080, 1920x1080, 1920x1080 
-#####################   DE: GNOME 
-#####################   WM: Mutter 
-  #################     WM Theme: Pop 
-                        Theme: Pop-dark [GTK2/3] 
-                        Icons: Tela-dark [GTK2/3] 
-                        Terminal: gnome-terminal 
-                        CPU: AMD Ryzen 9 4900HS with Radeon Graphics (16) @ 3.000GHz 
-                        GPU: AMD ATI 05:00.0 Renoir 
-                        GPU: NVIDIA GeForce RTX 2060 
-                        Memory: 7698MiB / 15415MiB 
-```                                   
-
----
-
-## **📦 Dependencies & Installation**
-### **1️⃣ Install Mir and Build Tools**
+## ** Dependencies & Installation**
+### ** Install Mir and Build Tools**
 ```sh
 sudo add-apt-repository ppa:mir-team/release
 sudo apt update
@@ -53,46 +65,35 @@ sudo apt install libmiral-dev mir-graphics-drivers-desktop
 sudo apt install build-essential cmake pkg-config
 ```
 
-### **2️⃣ Install Required Packages**
+### ** Install Required Packages**
 ```sh
 sudo apt install xfce4-terminal
 sudo apt install mir-demos mir-graphics-drivers-desktop
 ```
 
-### **3️⃣ (Optional) Install a Game for Testing**
+### ** (Optional) Install a Game for Testing**
 ```sh
 sudo apt install bomber
 ```
 
 ---
 
-## **🛠 Components**
+## ** Components**
 ### **Tiling Window Manager**
 This is the core of mirA, managing windows in a **tiling layout** with support for multiple workspaces.
 
 ### **Panel**
 A lightweight **GTK3-based panel** that provides a simple workspace indicator.  
-📦 Install required dependencies:
+Install required dependencies:
 ```sh
 sudo apt install libgtk-3-dev
 ```
 
 ### **Wallpaper**
 A minimal **GTK3 + Cairo** application for setting a wallpaper.  
-📦 Install required dependencies:
+Install required dependencies:
 ```sh
 sudo apt install libcairo2-dev libgtk-3-dev
 ```
 
----
-
-## **📜 Roadmap & Improvements**
-- [ ] **Better layout management**  
-  _Improve how windows are tiled dynamically based on available space._
-- [ ] **Floating window support**  
-  _Allow certain windows to be free-floating outside the tiling layout._
-- [ ] **Stack view support**  
-  _Enable a mode where windows stack within a container._
-- [ ] **Reorder windows**  
-  _Allow moving windows within the same workspace without resizing._
 
