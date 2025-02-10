@@ -73,15 +73,6 @@ Aplicación ligera en GTK para evitar configuraciones con otras apps
 
 ./mirA --startup-app "mirA_panel" --startup-app "mirA_wallpaper /usr/share/mirA/assets/background.png" 
 
-# **� Lista de Tareas y Mejoras para el Compositor**
-
-## **� Problemas Actuales**
-- [ ] **Al cambiar de workspace no se coloca solo el foco**  
-- [ ] ** No puedo cambiar una ventana a otro workspace **
-
-
-
----
 
 ## **� Mejoras y Ampliaciones**
 - [ ] **Mejor gestión del layout**  
