@@ -30,7 +30,7 @@ mirA **does not support** manual dragging or resizing of windows. Instead:
 
 ---
 
-## ** Future Improvements**
+## **Future Improvements**
 - [ ] **Better layout management**  
   _Improve how windows are tiled dynamically based on available space._
 - [ ] **Floating window support**  
