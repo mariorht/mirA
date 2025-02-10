@@ -138,13 +138,32 @@ bool TilingWindowManagerPolicy::handle_keyboard_event(const MirKeyboardEvent* ev
 
     MirInputEventModifiers mods = mir_keyboard_event_modifiers(event);
     bool mod = (mods & mir_input_event_modifier_meta);
+    bool ctrl = (mods & mir_input_event_modifier_ctrl_left);
 
     auto window = tools.active_window(); // Puede ser nulo si no hay ventanas
 
-    // � Permitir cambio de workspace aunque no haya ventanas activas
+    // � Permitir cambio de workspace
     if (mod)
     {
         int key = mir_keyboard_event_keysym(event);
+        std::cerr << "[DEBUG] Meta detectado, tecla: " << key << "\n";
+
+        if (ctrl)
+        {
+            std::cerr << "[DEBUG] Shift también detectado\n";
+        }
+        
+
+        if (ctrl && key >= XKB_KEY_1 && key <= XKB_KEY_9) // Detectar Meta + Shift + Número
+        {
+            int workspace_id = key - XKB_KEY_1 + 1;
+            if (window) // Evitar mover una ventana inexistente
+            {
+                std::cerr << "[DEBUG] Moviendo ventana a workspace " << workspace_id << "\n";
+                move_window_to_workspace(window, workspace_id);
+            }
+            return true;
+        }
 
         if (key >= XKB_KEY_1 && key <= XKB_KEY_9)
         {
@@ -439,5 +458,47 @@ void TilingWindowManagerPolicy::toggle_fullscreen(miral::Window window)
     }
 
     tools.modify_window(window, spec);
+    dirty_tiles = true;
+}
+
+
+void TilingWindowManagerPolicy::move_window_to_workspace(miral::Window window, int workspace_id)
+{
+    if (!window || window == panel_window || window == wallpaper_window)
+    {
+        std::cerr << "[ERROR] Intento de mover una ventana inválida.\n";
+        return;
+    }
+
+    if (workspaces.find(workspace_id) == workspaces.end())
+    {
+        create_workspace(workspace_id);
+    }
+
+    std::cerr << "[DEBUG] Moviendo ventana " << tools.info_for(window).name()
+              << " al workspace " << workspace_id << "\n";
+
+    // Remover la ventana del workspace actual
+    tools.for_each_workspace_containing(window, [&](std::shared_ptr<Workspace> const& workspace)
+    {
+        tools.remove_tree_from_workspace(window, workspace);
+    });
+
+    // Agregar la ventana al nuevo workspace
+    tools.add_tree_to_workspace(window, workspaces[workspace_id]);
+
+    // Ocultar la ventana en el workspace actual
+    miral::WindowSpecification spec;
+    spec.state() = mir_window_state_hidden;
+    tools.modify_window(window, spec);
+
+    // Si estamos en el workspace al que la movimos, restaurarla y darle foco
+    if (workspace_id == active_workspace)
+    {
+        spec.state() = mir_window_state_restored;
+        tools.modify_window(window, spec);
+        tools.select_active_window(window);
+    }
+
     dirty_tiles = true;
 }

@@ -49,11 +49,19 @@ install(TARGETS mirA_panel mirA_wallpaper mirA
     RUNTIME DESTINATION /usr/local/bin
 )
 
+# Copiar la carpeta assets a /usr/share/mirA/assets
+install(DIRECTORY assets/ DESTINATION /usr/share/mirA/assets
+    FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+    DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+)
+
 # Target para desinstalar
 add_custom_target(uninstall
     COMMAND xargs rm < install_manifest.txt
+    COMMAND rm -rf /usr/share/mirA/assets
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    COMMENT "Desinstalando archivos..."
+    COMMENT "Desinstalando archivos y la carpeta assets..."
 )
+
 
 
