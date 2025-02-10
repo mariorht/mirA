@@ -46,11 +46,6 @@ private:
 
     void update_tiles();
 
-    miral::WindowManagerTools tools;
-
-    bool dirty_tiles = false;  // Flag para marcar cuando necesitamos actualizar el tiling
-
-    //Workspaces
     void create_workspace(int id);
     void switch_workspace(int id);
     void saveWorkspaceFile(int id);
@@ -59,11 +54,18 @@ private:
 
 
 private:
+    miral::WindowManagerTools tools;
+
     int active_workspace = 1;
     std::unordered_map<int, std::shared_ptr<miral::Workspace>> workspaces;
     miral::Window panel_window;
     miral::Window wallpaper_window;
+
     const std::string WORKSPACE_FILE = "/tmp/workspace_id";
+    const std::string WORKSPACE_PROGRAM_NAME = "Workspace Panel";
+    const std::string WALLPAPER_PROGRAM_NAME = "Wallpaper";
+
+    bool dirty_tiles = false;  // If true update_tiles() will be called on the next frame
 
 };
 

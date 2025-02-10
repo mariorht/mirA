@@ -23,25 +23,15 @@ int Compositor::run()
             std::istringstream iss(app);
             std::string arg;
 
-            while (iss >> std::quoted(arg))  // Extraer los argumentos correctamente
+            while (iss >> std::quoted(arg))
             {
                 command_args.push_back(arg);
             }
 
             if (!command_args.empty())
-            {
-                std::cerr << "[DEBUG] Ejecutando aplicación de inicio: " << command_args[0] << "\n";
-                for (size_t i = 1; i < command_args.size(); ++i)
-                {
-                    std::cerr << "[DEBUG]  → Argumento: " << command_args[i] << "\n";
-                }
-                
                 external_client_launcher.launch(command_args);
-            }
             else
-            {
                 std::cerr << "[ERROR] No se pudo procesar la aplicación de inicio: " << app << "\n";
-            }
         }
     };
 

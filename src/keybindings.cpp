@@ -4,7 +4,7 @@ std::function<bool(MirEvent const*)> KeyBindings::builtin_keybinds(miral::MirRun
 {
     return [&](MirEvent const* event) -> bool
     {
-        using namespace miral::toolkit;  // <-- Importamos el espacio de nombres correcto
+        using namespace miral::toolkit;
 
         if (mir_event_get_type(event) != mir_event_type_input)
             return false;
