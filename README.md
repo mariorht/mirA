@@ -21,6 +21,26 @@ Install them on Ubuntu/Debian:
 sudo apt install miral-dev libgtk-3-dev libcairo2-dev libxkbcommon-dev
 ```
 
+## **📥 Install from Releases**  
+
+You can download the latest stable version of **mirA** from the official releases page:  
+
+👉 **[mirA Releases](https://github.com/mariorht/mirA/releases/tag/v0.1)**  
+
+### **📦 Installing the `.deb` Package**  
+1️⃣ **Download the latest `.deb` file** from the releases page.  
+2️⃣ **Install it using `dpkg`**:  
+   ```sh
+   sudo dpkg -i mirA-*.deb
+   ```
+
+### **🚀 Running mirA**
+Once installed, you can launch **mirA** with:  
+```sh
+mirA --startup-app "mirA_panel" --startup-app "mirA_wallpaper /usr/share/mirA/assets/background.png"
+```
+
+
 ## 🔧 Building mirA
 Clone the repository and compile the project:
 ```sh
@@ -40,12 +60,6 @@ cpack -G DEB
 Then install it:
 ```sh
 sudo dpkg -i mirA-1.0.0-Linux.deb
-```
-
-## 🖥️ Running mirA
-To launch mirA with the **panel and wallpaper**:
-```sh
-mirA --startup-app mirA_panel --startup-app "mirA_wallpaper /usr/share/mirA/assets/background.png"
 ```
 
 ## ⌨️ Keyboard Shortcuts
