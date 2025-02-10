@@ -75,7 +75,7 @@ void TilingWindowManagerPolicy::handle_window_ready(miral::WindowInfo& window_in
         tools.add_tree_to_workspace(window, workspaces[active_workspace]);
     }
 
-    update_tiles();
+    dirty_tiles = true;
 
     if (window_info.can_be_active() && window != panel_window && window != wallpaper_window)  // ✅ Evita que el panel o el fondo tomen foco
     {
@@ -90,8 +90,8 @@ void TilingWindowManagerPolicy::handle_modify_window(miral::WindowInfo& window_i
               << " | Estado actual: " << window_info.state() << "\n";
 
     // Si la ventana ya está oculta, no modificarla nuevamente
-    if (window_info.state() == mir_window_state_hidden && modifications.state().is_set() 
-        && modifications.state().value() == mir_window_state_restored)
+    // No tengo claro por qué se llama a handle_modify_window con la ventana ya oculta
+    if (window_info.state() == mir_window_state_hidden && modifications.state().value() == mir_window_state_restored)
     {
         std::cerr << "[DEBUG] Evitando restaurar ventana oculta en cambio de workspace: " 
                   << window_info.name() << "\n";
@@ -381,7 +381,7 @@ void TilingWindowManagerPolicy::switch_workspace(int id)
     });
 
 
-    update_tiles();
+    dirty_tiles = true;
 
 }
 
@@ -428,5 +428,5 @@ void TilingWindowManagerPolicy::toggle_fullscreen(miral::Window window)
     }
 
     tools.modify_window(window, spec);
-    update_tiles();
+    dirty_tiles = true;
 }
