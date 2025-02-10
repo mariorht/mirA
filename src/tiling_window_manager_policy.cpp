@@ -356,34 +356,45 @@ void TilingWindowManagerPolicy::switch_workspace(int id)
     {
         if (window == panel_window || window == wallpaper_window)  // No ocultar el panel ni el fondo
             return;
-        
+
         miral::WindowSpecification spec;
         spec.state() = mir_window_state_hidden;
         tools.modify_window(window, spec);
         std::cerr << "[DEBUG] Ocultando ventana " << tools.info_for(window).name() << "\n";
-        
     });
 
     active_workspace = id;
     saveWorkspaceFile(id);
 
-    // Mostrar las ventanas del nuevo workspace
+    // Restaurar ventanas del nuevo workspace y seleccionar la primera ventana visible
+    miral::Window first_window;
+
     tools.for_each_window_in_workspace(workspaces[active_workspace], [&](Window const& window)
     {
         if (window == panel_window || window == wallpaper_window)  // No ocultar el panel ni el fondo
             return;
-        
+
+        if (!first_window)  // Seleccionar la primera ventana restaurada
+        {
+            first_window = window;
+        }
+
         miral::WindowSpecification spec;
         spec.state() = mir_window_state_restored;
         tools.modify_window(window, spec);
         std::cerr << "[DEBUG] Mostrando ventana " << tools.info_for(window).name() << "\n";
-        
     });
 
+    // Seleccionar la primera ventana visible
+    if (first_window)
+    {
+        tools.select_active_window(first_window);
+        std::cerr << "[DEBUG] Foco en ventana: " << tools.info_for(first_window).name() << "\n";
+    }
 
     dirty_tiles = true;
-
 }
+
 
 void TilingWindowManagerPolicy::saveWorkspaceFile(int id)
 {
